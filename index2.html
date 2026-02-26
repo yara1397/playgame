@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>بازی جاسوس</title>
+<style>
+body{
+    font-family: sans-serif;
+    text-align:center;
+    background:#1e1e2f;
+    color:white;
+}
+.container{
+    margin-top:50px;
+}
+button{
+    padding:10px 20px;
+    margin-top:15px;
+    font-size:16px;
+    cursor:pointer;
+    border:none;
+    border-radius:8px;
+}
+input{
+    padding:8px;
+    margin:5px;
+    border-radius:6px;
+    border:none;
+}
+.role-box{
+    margin-top:30px;
+    font-size:24px;
+}
+.hidden{
+    display:none;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>🎭 بازی جاسوس</h1>
+
+<div id="setup">
+    <p>چند نفر هستید؟</p>
+    <input type="number" id="players" min="3">
+
+    <p>چند جاسوس باشد؟</p>
+    <input type="number" id="spies" min="1">
+
+    <br>
+    <button onclick="startGame()">شروع بازی</button>
+</div>
+
+<div id="game" class="hidden">
+    <h2 id="playerTurn"></h2>
+    <div class="role-box" id="roleBox">نقش شما آماده است</div>
+    <button onclick="showRole()">نمایش نقش</button>
+    <button onclick="nextPlayer()" class="hidden" id="nextBtn">نفر بعدی</button>
+</div>
+
+</div>
+
+<script>
+let roles = [];
+let currentPlayer = 0;
+let totalPlayers = 0;
+
+// لیست کلمات بازی
+const words = ["دکان", "مدرسه", "جنگل", "بیمارستان", "فرودگاه", "دریا", "بازار"];
+
+function startGame(){
+    totalPlayers = parseInt(document.getElementById("players").value);
+    let spyCount = parseInt(document.getElementById("spies").value);
+
+    if(spyCount >= totalPlayers){
+        alert("تعداد جاسوس‌ها نباید برابر یا بیشتر از تعداد بازیکن‌ها باشد!");
+        return;
+    }
+
+    roles = [];
+
+    // انتخاب یک کلمه تصادفی برای این دور بازی
+    const secretWord = words[Math.floor(Math.random() * words.length)];
+
+    // اضافه کردن جاسوس‌ها
+    for(let i=0;i<spyCount;i++){
+        roles.push("🕵️ جاسوس");
+    }
+
+    // بقیه بازیکن‌ها کلمه را می‌بینند
+    for(let i=0;i<totalPlayers-spyCount;i++){
+        roles.push("📌 " + secretWord);
+    }
+
+    // مخلوط کردن نقش‌ها
+    roles.sort(() => Math.random() - 0.5);
+
+    document.getElementById("setup").classList.add("hidden");
+    document.getElementById("game").classList.remove("hidden");
+
+    currentPlayer = 0;
+    updateTurn();
+}
+
+function updateTurn(){
+    document.getElementById("playerTurn").innerText =
+        "نفر شماره " + (currentPlayer+1) + " گوشی را بگیرد";
+    document.getElementById("roleBox").innerText = "نقش شما آماده است";
+    document.getElementById("nextBtn").classList.add("hidden");
+}
+
+function showRole(){
+    document.getElementById("roleBox").innerText = roles[currentPlayer];
+    document.getElementById("nextBtn").classList.remove("hidden");
+}
+
+function nextPlayer(){
+    currentPlayer++;
+    if(currentPlayer >= totalPlayers){
+        document.getElementById("playerTurn").innerText = "🎉 همه نقش‌ها پخش شد!";
+        document.getElementById("roleBox").innerText = "";
+        document.getElementById("nextBtn").classList.add("hidden");
+        return;
+    }
+    updateTurn();
+}
+</script>
+
+</body>
+</html>
