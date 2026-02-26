@@ -7,9 +7,7 @@
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
-
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Vazirmatn',sans-serif;}
-
 body{
     min-height:100vh;
     background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
@@ -19,7 +17,6 @@ body{
     align-items:center;
     padding:20px;
 }
-
 .container{
     max-width:500px;
     width:100%;
@@ -28,7 +25,6 @@ body{
     padding:30px;
     border-radius:15px;
 }
-
 input{
     padding:10px;
     border-radius:8px;
@@ -37,7 +33,6 @@ input{
     width:80%;
     text-align:center;
 }
-
 button{
     padding:10px 20px;
     border:none;
@@ -47,7 +42,6 @@ button{
     color:white;
     cursor:pointer;
 }
-
 .role-box{
     margin-top:20px;
     padding:20px;
@@ -82,7 +76,6 @@ button{
 </div>
 
 <script>
-
 let rolesData = JSON.parse(localStorage.getItem("mafiaSecretRoles")) || [];
 let currentPlayer = 0;
 
@@ -94,49 +87,42 @@ function shuffle(array){
     return array.sort(() => Math.random() - 0.5);
 }
 
-function startGame(){
-
+function startGame() {
     const totalPlayers = parseInt(document.getElementById("playerCount").value);
-    const mafiaNumber = parseInt(document.getElementById("mafiaCount").value);
+    let mafiaNumber = parseInt(document.getElementById("mafiaCount").value);
 
-    if(totalPlayers < 6){
+    if (totalPlayers < 6) {
         alert("حداقل ۶ نفر لازمه 😎");
         return;
     }
 
-    if(mafiaNumber < 1 || mafiaNumber >= totalPlayers){
+    if (mafiaNumber < 1 || mafiaNumber >= totalPlayers) {
         alert("تعداد مافیا درست نیست 😈");
         return;
     }
 
     let roles = [];
 
-    // رئیس مافیا
+    // همیشه 2 نقش ثابت: رئیس مافیا و دکتر لکتر
     roles.push("👑 رئیس مافیا");
+    roles.push("⚡ دکتر لکتر");
 
-    // بقیه مافیا
-    for(let i=1;i<mafiaNumber;i++){
+    // بقیه مافیاها
+    let normalMafiaCount = mafiaNumber - 2;
+    for (let i = 0; i < normalMafiaCount; i++) {
         roles.push("🔴 مافیا");
     }
 
-    // دکتر لکتر (عضو مافیا ویژه)
-    roles.push("⚡ دکتر لکتر");
-
     // نقش‌های شهر
-    const cityRoles = [
-        "🟢 دکتر",
-        "🔵 کارآگاه",
-        "🔫 تک‌تیرانداز"
-    ];
-
-    for(let role of cityRoles){
-        if(roles.length < totalPlayers){
+    const cityRoles = ["🟢 دکتر", "🔵 کارآگاه", "🔫 تک‌تیرانداز"];
+    for (let role of cityRoles) {
+        if (roles.length < totalPlayers) {
             roles.push(role);
         }
     }
 
     // بقیه شهروند
-    while(roles.length < totalPlayers){
+    while (roles.length < totalPlayers) {
         roles.push("⚪ شهروند");
     }
 
@@ -145,8 +131,8 @@ function startGame(){
 
     saveGame();
 
-    document.getElementById("setup").style.display="none";
-    document.getElementById("game").style.display="block";
+    document.getElementById("setup").style.display = "none";
+    document.getElementById("game").style.display = "block";
 
     updatePlayer();
 }
@@ -183,7 +169,6 @@ if(rolesData.length > 0){
     document.getElementById("game").style.display="block";
     updatePlayer();
 }
-
 </script>
 
 </body>

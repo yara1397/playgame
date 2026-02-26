@@ -2,7 +2,7 @@
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
-<title>بازی جاسوس</title>
+<title>🎭 بازی جاسوس</title>
 <style>
 body{
     font-family: sans-serif;
@@ -67,8 +67,17 @@ let roles = [];
 let currentPlayer = 0;
 let totalPlayers = 0;
 
-// لیست کلمات بازی
-const words = ["دکان", "مدرسه", "جنگل", "بیمارستان", "فرودگاه", "دریا", "بازار"];
+// لیست نمونه 50 کلمه (می‌توان تا 500 گسترش داد)
+const words = [
+"دکان","مدرسه","جنگل","بیمارستان","فرودگاه","دریا","بازار","کتابخانه","پارک","خانه",
+"مداد","خودکار","بادبادک","سطل","شیر","نان","سیب","ماشین","دوچرخه","گربه",
+"سگ","پرنده","بازی","توپ","رنگ","کلاه","کفش","عروسک","کامپیوتر","تلویزیون",
+"میز","صندلی","درخت","گل","باران","خورشید","ماه","ستاره","آسمان","ابر",
+"رودخانه","پل","هواپیما","قایق","کشتی","چای","قهوه","شکلات","آبمیوه","میوه"
+];
+
+// کلمه مشترک برای شهروندها
+let sharedWord = "";
 
 function startGame(){
     totalPlayers = parseInt(document.getElementById("players").value);
@@ -81,17 +90,17 @@ function startGame(){
 
     roles = [];
 
-    // انتخاب یک کلمه تصادفی برای این دور بازی
-    const secretWord = words[Math.floor(Math.random() * words.length)];
+    // انتخاب یک کلمه مشترک تصادفی برای این دور
+    sharedWord = words[Math.floor(Math.random() * words.length)];
 
     // اضافه کردن جاسوس‌ها
     for(let i=0;i<spyCount;i++){
         roles.push("🕵️ جاسوس");
     }
 
-    // بقیه بازیکن‌ها کلمه را می‌بینند
+    // اضافه کردن شهروندها با کلمه مشترک
     for(let i=0;i<totalPlayers-spyCount;i++){
-        roles.push("📌 " + secretWord);
+        roles.push("📌 " + sharedWord);
     }
 
     // مخلوط کردن نقش‌ها

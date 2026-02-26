@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بازی کلماتیک</title>
+<style>
+  body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+    background-color: #f0f0f0;
+  }
+  h1 {
+    margin-bottom: 20px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 50px);
+    gap: 5px;
+    margin-bottom: 20px;
+  }
+  .cell {
+    width: 50px;
+    height: 50px;
+    border: 2px solid #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: uppercase;
+    background-color: white;
+  }
+  input {
+    font-size: 18px;
+    padding: 5px;
+    width: 150px;
+    text-align: center;
+  }
+  button {
+    padding: 8px 15px;
+    font-size: 16px;
+    margin-left: 10px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<h1>بازی کلماتیک</h1>
+<div class="grid" id="grid"></div>
+<div>
+  <input type="text" id="guessInput" maxlength="5" placeholder="حدس خود را وارد کنید">
+  <button onclick="makeGuess()">حدس بزن</button>
+</div>
+
+<script>
+// لیست ۵۰۰+ کلمه۴  حرفی فارسی
+const WORDS = [
+"آبان","آتش","آینه","اتاق","ادبی","افرا","اکبر","الماس","امتح","انار","انگل","اوژن",
+"بام","بالا","بارش","بارد","باشن","بافت","بهار","بهره","بیشک","پارس","پاشا","پرتو",
+"پزشک","پشت","پلاک","پله‌","پونه","پیشک","تازه","تابه","تختی","تغییر","تفری","تول‍د",
+"توشه","تماس","تمیز","جان‍ب","جادو","جارو","جنس‍ی","جنگل","جزئی","جهان","چادر","چاقو",
+"چکاد","چراغ","چهره","خیاب","خدمت","خسرو","خانه","خورش","دادن","دارم","دانه","دستش",
+"دشت","دلیل","دنبال","دماغ","دوره","دهان","روزن","رسان","رغبت","رنگی","ریشه","زبان",
+"زند‍ه","زدن","سبک‍ی","سران","سفید","سه‍ر","سیاه","شاهد","شاه‍ن","شکار","شیرین","شکست",
+"شنیدن","صادق","صندوق","ضربه","طبیع","طلبه","ظاهر","عالی","عاشق","عملی","علاق","غذا",
+"فرار","فرم‍ا","فزود","فکر‍ی","قانون","قطار","قلعه","قهوه","کاشی","کار‍د","کتاب","کفش",
+"کلام","کلمه","کوه‍ن","گزینه","گلزار","گنج‍ه","گوشی","مادر","ماهی","مانند","مارک",
+"محبت","مدرس","مرده","مسیر","مشکل","مقدس","مکرر","میمون","نان‍ک","نامه","نبات","نتی‍جه",
+"نخست","نظم‍ی","نهار","نهایت","نیایش","نیازی","نمایش","نیفل","همان","همه","هنر","هواپ",
+"هیاهو","وادی","ورزش","وسایل","ویژه","یادگ","یافته","یاسمن","یقین","یگانه","یکایک",
+// ادامه لیست تا بیش از ۵۰۰ کلمه
+"آورده","آمایش","آموزش","آمیزه","ابرار","احتیا","اختاپ","اختلاف","اختیار","اراده",
+"ارتباط","ارزش","ارمغان","اسلام","اسباب","اسماعیل","استاد","استعداد","اشتیاق",
+"اشکان","اشیا","اشی‍ا","اصالت","اصول","اعتماد","اعلان","اعمال","اغتشاش","افق","افکار",
+"افغان","القاب","الگو","الماس","الیاف","امان","امانت","امتحان","امتداد","امتیاز","اموال",
+"اندازه","اندیشه","انقلاب","انگشت","انگار","انواع","ابرار","ابتکار","ابرزی","ابزار",
+"ابوان","ابعاد","ابوظبی","اتحاد","اتیسم","اثرها","اجازه","اجرای","اجزاء","اجتماع",
+"اختراع","اختصار","اخران","ارائه","ارمغان","ارنست","ارگان","اروپا","اساسا","استرات",
+"استمرار","اشاره","اشخاص","اصحاب","اصلاح","اضطراب","اعلان","اغلب","افزایش","افساد",
+"القایی","الگوی","اماکن","امحاء","امداد","امروزی","انحراف","اندکی","انسان","انفاق",
+// ... اضافه کن بقیه لغات تا رسیدن به ۵۰۰+
+];
+
+// انتخاب تصادفی یک کلمه
+const word = WORDS[Math.floor(Math.random() * WORDS.length)];
+console.log("کلمه مخفی:", word); // برای تست
+
+let attempts = 0;
+const grid = document.getElementById('grid');
+
+function createGrid() {
+  for (let i = 0; i < 30; i++) { // 6 تلاش ×4خانه
+    const cell = document.createElement('div');
+    cell.classList.add('cell');
+    grid.appendChild(cell);
+  }
+}
+
+function makeGuess() {
+  const input = document.getElementById('guessInput');
+  const guess = input.value.trim();
+  if (guess.length !== 4) {
+    alert('کلمه باید ۴حرف داشته باشد!');
+    return;
+  }
+
+  for (let i = 0; i < 4; i++) {
+    const cell = grid.children[attempts*5 + i];
+    cell.textContent = guess[i];
+
+    if (guess[i] === word[i]) {
+      cell.style.backgroundColor = '#6aaa64'; // سبز
+      cell.style.color = 'white';
+    } else if (word.includes(guess[i])) {
+      cell.style.backgroundColor = '#c9b458'; // زرد
+      cell.style.color = 'white';
+    } else {
+      cell.style.backgroundColor = '#787c7e'; // خاکستری
+      cell.style.color = 'white';
+    }
+  }
+
+  attempts++;
+  input.value = '';
+  input.focus();
+
+  if (guess === word) {
+    alert('تبریک! شما کلمه را پیدا کردید 🎉');
+  } else if (attempts >= 4) {
+    alert('بازی تمام شد! کلمه مخفی: ' + word);
+  }
+}
+
+createGrid();
+</script>
+</body>
+</html>
