@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بازی مافیا</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
+
+<style>
+  :root {
+    --blood: #8b0000;
+    --crimson: #dc143c;
+    --gold: #c9a84c;
+    --dark: #0a0a0f;
+    --darker: #060608;
+    --card-bg: #12121a;
+    --text: #e8e0d0;
+    --muted: #7a7060;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Vazirmatn', sans-serif;
+    background: var(--darker);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; animation: fadeIn 0.5s ease; }
+  .screen.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== SETUP SCREEN ===== */
+  #setup-screen {
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: 
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(139,0,0,0.3) 0%, transparent 70%),
+      var(--darker);
+  }
+
+  .logo-area {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .logo-icon {
+    font-size: 80px;
+    display: block;
+    animation: pulse 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 20px rgba(220,20,60,0.5));
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(220,20,60,0.5)); }
+    50% { transform: scale(1.05); filter: drop-shadow(0 0 40px rgba(220,20,60,0.8)); }
+  }
+
+  .logo-title {
+    font-size: 52px;
+    font-weight: 900;
+    letter-spacing: 6px;
+    background: linear-gradient(135deg, var(--gold), #fff8e7, var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-top: 10px;
+    text-shadow: none;
+  }
+
+  .logo-subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 3px;
+    margin-top: 8px;
+    text-transform: uppercase;
+  }
+
+  .setup-box {
+    background: var(--card-bg);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(201,168,76,0.05);
+  }
+
+  .setup-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--gold);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .players-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .player-btn {
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--muted);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .player-btn:hover, .player-btn.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(201,168,76,0.1);
+  }
+
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .input-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .input-field label {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .input-field input {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .input-field input:focus {
+    border-color: rgba(201,168,76,0.5);
+  }
+
+  #player-names-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .player-name-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+
+  .player-num {
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 20px;
+  }
+
+  .player-name-input input {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--blood), var(--crimson));
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .start-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(220,20,60,0.4); }
+  .start-btn:hover::before { opacity: 1; }
+
+  /* ===== ROLE REVEAL SCREEN ===== */
+  #reveal-screen {
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: var(--darker);
+  }
+
+  .reveal-container {
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+  }
+
+  .reveal-header {
+    margin-bottom: 30px;
+  }
+
+  .player-turn {
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .player-turn-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .progress-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 16px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    transition: all 0.3s;
+  }
+
+  .dot.done { background: var(--gold); }
+  .dot.current { background: var(--crimson); transform: scale(1.3); }
+
+  /* Role Card */
+  .role-card-wrapper {
+    perspective: 1000px;
+    margin: 0 auto 30px;
+    width: 280px;
+    height: 380px;
+  }
+
+  .role-card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+
+  .role-card.flipped { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow: hidden;
+  }
+
+  .card-back {
+    background: 
+      repeating-linear-gradient(
+        45deg,
+        rgba(139,0,0,0.1) 0px,
+        rgba(139,0,0,0.1) 2px,
+        transparent 2px,
+        transparent 10px
+      ),
+      var(--card-bg);
+    border: 1px solid rgba(201,168,76,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .card-back-icon { font-size: 64px; }
+  .card-back-text {
+    font-size: 14px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+
+  .card-front {
+    transform: rotateY(180deg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    border: 1px solid rgba(201,168,76,0.3);
+  }
+
+  .role-emoji { font-size: 72px; margin-bottom: 16px; }
+
+  .role-name {
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .role-team {
+    font-size: 11px;
+    letter-spacing: 3px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 18px;
+    font-weight: 600;
+  }
+
+  .team-mafia { background: rgba(139,0,0,0.3); color: #ff6b6b; border: 1px solid rgba(220,20,60,0.4); }
+  .team-citizen { background: rgba(0,100,0,0.2); color: #6bff8a; border: 1px solid rgba(0,200,0,0.3); }
+  .team-neutral { background: rgba(100,50,0,0.2); color: #ffc86b; border: 1px solid rgba(200,150,0,0.3); }
+
+  .role-desc {
+    font-size: 13px;
+    color: rgba(232,224,208,0.7);
+    line-height: 1.8;
+    text-align: center;
+  }
+
+  /* Role specific backgrounds */
+  .bg-mafia-boss { background: linear-gradient(160deg, #1a0510 0%, #2d0015 50%, #0d0005 100%); }
+  .bg-mafia { background: linear-gradient(160deg, #120008 0%, #200010 50%, #0a0005 100%); }
+  .bg-doctor { background: linear-gradient(160deg, #001520 0%, #002535 50%, #000d15 100%); }
+  .bg-lecter { background: linear-gradient(160deg, #100015 0%, #1a0025 50%, #080010 100%); }
+  .bg-detective { background: linear-gradient(160deg, #051200 0%, #0d2000 50%, #030900 100%); }
+  .bg-psychologist { background: linear-gradient(160deg, #100510 0%, #200a20 50%, #0a020a 100%); }
+  .bg-sniper { background: linear-gradient(160deg, #0a1200 0%, #152000 50%, #060d00 100%); }
+
+  .tap-hint {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    animation: blink 2s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .reveal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .btn-secondary {
+    padding: 12px 28px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+
+  .btn-next {
+    padding: 12px 36px;
+    background: linear-gradient(135deg, var(--blood), var(--crimson));
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: none;
+  }
+
+  .btn-next:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,20,60,0.4); }
+  .btn-next.visible { display: block; }
+
+  /* ===== SUMMARY SCREEN ===== */
+  #summary-screen {
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: 
+      radial-gradient(ellipse 60% 40% at 50% 100%, rgba(139,0,0,0.2) 0%, transparent 70%),
+      var(--darker);
+  }
+
+  .summary-box {
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .summary-title {
+    text-align: center;
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .summary-sub {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 2px;
+    margin-bottom: 36px;
+  }
+
+  .roles-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+
+  .role-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card-bg);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 14px 20px;
+    transition: all 0.2s;
+  }
+
+  .role-row:hover {
+    border-color: rgba(201,168,76,0.2);
+    background: rgba(201,168,76,0.03);
+  }
+
+  .role-row-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .role-row-emoji { font-size: 28px; }
+
+  .role-row-info { display: flex; flex-direction: column; gap: 3px; }
+  .role-row-player { font-size: 15px; font-weight: 600; }
+  .role-row-role { font-size: 12px; color: var(--muted); }
+
+  .role-row-team {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  .restart-btn {
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 10px;
+    color: var(--gold);
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.3s;
+  }
+
+  .restart-btn:hover {
+    background: rgba(201,168,76,0.1);
+    border-color: var(--gold);
+  }
+
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin: 20px 0;
+  }
+
+  /* Role count badges */
+  .role-counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .role-count-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 2px; }
+
+  /* Screen transition overlay */
+  .pass-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--darker);
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+    gap: 20px;
+  }
+
+  .pass-overlay.show { opacity: 1; pointer-events: all; }
+  .pass-overlay-text { font-size: 18px; color: var(--gold); letter-spacing: 3px; }
+  .pass-overlay-name { font-size: 32px; font-weight: 900; color: white; }
+  .pass-overlay-hint { font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- PASS OVERLAY -->
+<div class="pass-overlay" id="pass-overlay">
+  <div class="pass-overlay-text">نوبت بعدی:</div>
+  <div class="pass-overlay-name" id="pass-name"></div>
+  <div class="pass-overlay-hint">برای ادامه کلیک کنید</div>
+</div>
+
+<!-- SCREEN 1: SETUP -->
+<div class="screen active" id="setup-screen">
+  <div class="logo-area">
+    <span class="logo-icon">🎭</span>
+    <div class="logo-title">مافیا</div>
+    <div class="logo-subtitle">بازی نقش‌محور</div>
+  </div>
+
+  <div class="setup-box">
+    <div class="setup-title">⚙️ تنظیمات بازی</div>
+
+    <div style="margin-bottom: 20px;">
+      <div style="font-size: 13px; color: var(--muted); margin-bottom: 10px;">تعداد بازیکنان:</div>
+      <div class="players-grid" id="player-count-btns">
+        <button class="player-btn" onclick="setPlayerCount(6)">۶ نفر</button>
+        <button class="player-btn active" onclick="setPlayerCount(7)">۷ نفر</button>
+        <button class="player-btn" onclick="setPlayerCount(8)">۸ نفر</button>
+        <button class="player-btn" onclick="setPlayerCount(9)">۹ نفر</button>
+        <button class="player-btn" onclick="setPlayerCount(10)">۱۰ نفر</button>
+        <button class="player-btn" onclick="setPlayerCount(12)">۱۲ نفر</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <div style="font-size: 13px; color: var(--muted); margin-bottom: 10px;">اسامی بازیکنان:</div>
+      <div id="player-names-container"></div>
+    </div>
+
+    <div id="role-preview" style="margin-bottom: 24px;"></div>
+
+    <button class="start-btn" onclick="startGame()">▶ شروع توزیع نقش‌ها</button>
+  </div>
+</div>
+
+<!-- SCREEN 2: ROLE REVEAL -->
+<div class="screen" id="reveal-screen">
+  <div class="reveal-container">
+    <div class="reveal-header">
+      <div class="player-turn">نوبت بازیکن:</div>
+      <div class="player-turn-name" id="current-player-name">—</div>
+      <div class="progress-dots" id="progress-dots"></div>
+    </div>
+
+    <div class="role-card-wrapper" onclick="flipCard()">
+      <div class="role-card" id="role-card">
+        <div class="card-face card-back">
+          <span class="card-back-icon">🂠</span>
+          <div class="card-back-text">برای نمایش نقش کلیک کنید</div>
+        </div>
+        <div class="card-face card-front" id="card-front-face">
+          <div class="role-emoji" id="card-emoji"></div>
+          <div class="role-name" id="card-role-name"></div>
+          <div class="role-team" id="card-team"></div>
+          <div class="role-desc" id="card-desc"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tap-hint" id="tap-hint">👆 روی کارت کلیک کنید</div>
+
+    <div class="reveal-actions" style="margin-top: 20px;">
+      <button class="btn-next" id="next-btn" onclick="nextPlayer()">بازیکن بعدی ←</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 3: SUMMARY -->
+<div class="screen" id="summary-screen">
+  <div class="summary-box">
+    <div class="summary-title">🎭 خلاصه بازی</div>
+    <div class="summary-sub">نقش‌ها توزیع شدند — آماده شروع بازی‌اید</div>
+    <div class="roles-list" id="summary-roles-list"></div>
+    <button class="restart-btn" onclick="restartGame()">↺ بازی جدید</button>
+  </div>
+</div>
+
+<script>
+  // ===== ROLES DEFINITION =====
+  const ROLES = {
+    mafia_boss: {
+      name: 'رئیس مافیا',
+      emoji: '👑',
+      team: 'مافیا',
+      teamClass: 'team-mafia',
+      bgClass: 'bg-mafia-boss',
+      desc: 'رهبر گروه مافیا. هر شب یک نفر را حذف می‌کنی. اگر کشته شوی، مافیا می‌تواند ادامه دهد.',
+      count: 1
+    },
+    mafia: {
+      name: 'مافیا',
+      emoji: '🔫',
+      team: 'مافیا',
+      teamClass: 'team-mafia',
+      bgClass: 'bg-mafia',
+      desc: 'عضو گروه مافیا. با رئیس همکاری می‌کنی تا شهروندان را حذف کنی.',
+      count: 0 // dynamic
+    },
+    doctor: {
+      name: 'دکتر',
+      emoji: '🩺',
+      team: 'شهروند',
+      teamClass: 'team-citizen',
+      bgClass: 'bg-doctor',
+      desc: 'هر شب می‌توانی یک نفر (یا خودت) را نجات دهی. اگر مافیا به او حمله کند، زنده می‌ماند.',
+      count: 1
+    },
+    lecter: {
+      name: 'دکتر لکتر',
+      emoji: '🧠',
+      team: 'مافیا',
+      teamClass: 'team-mafia',
+      bgClass: 'bg-lecter',
+      desc: 'دکتری در خدمت مافیا. هر شب می‌توانی یک نفر را نجات دهی — البته به انتخاب خودت!',
+      count: 1
+    },
+    detective: {
+      name: 'کاراگاه',
+      emoji: '🔍',
+      team: 'شهروند',
+      teamClass: 'team-citizen',
+      bgClass: 'bg-detective',
+      desc: 'هر شب هویت یک نفر را استعلام می‌کنی. گرداننده پاسخ می‌دهد مافیا یا شهروند.',
+      count: 1
+    },
+    psychologist: {
+      name: 'روانشناس',
+      emoji: '🪄',
+      team: 'شهروند',
+      teamClass: 'team-citizen',
+      bgClass: 'bg-psychologist',
+      desc: 'هر شب می‌توانی یک نفر را «سکوت» کنی. آن شخص روز بعد نمی‌تواند صحبت کند.',
+      count: 1
+    },
+    sniper: {
+      name: 'تک‌تیرانداز',
+      emoji: '🎯',
+      team: 'شهروند',
+      teamClass: 'team-citizen',
+      bgClass: 'bg-sniper',
+      desc: 'یک گلوله داری — فقط یک بار در کل بازی می‌توانی شلیک کنی. اگر هدف مافیا باشد، حذف می‌شود. اگر اشتباه بزنی، خودت از بازی خارج می‌شوی!',
+      count: 1
+    },
+    citizen: {
+      name: 'شهروند',
+      emoji: '👤',
+      team: 'شهروند',
+      teamClass: 'team-citizen',
+      bgClass: 'bg-doctor',
+      desc: 'شهروند ساده شهر. هوش و منطقت تنها سلاح توست. مافیا را در رای‌گیری شناسایی کن.',
+      count: 0 // dynamic
+    }
+  };
+
+  // ===== STATE =====
+  let playerCount = 7;
+  let players = [];
+  let assignments = [];
+  let currentIndex = 0;
+  let cardFlipped = false;
+
+  function getRoleDistribution(n) {
+    // Base: mafia_boss(1), doctor(1), lecter(1), detective(1), psychologist(1), sniper(1) = 6 fixed
+    // Remaining = n - 6, split between extra mafia and citizens
+    let fixed = ['mafia_boss', 'doctor', 'lecter', 'detective', 'psychologist', 'sniper'];
+    let remaining = n - 6;
+    if (remaining < 0) {
+      // For very small games, drop sniper
+      fixed = ['mafia_boss', 'doctor', 'lecter', 'detective', 'psychologist'];
+      remaining = n - 5;
+    }
+    let extraMafia = Math.floor(remaining / 3);
+    let citizens = remaining - extraMafia;
+    let result = [...fixed];
+    for (let i = 0; i < extraMafia; i++) result.push('mafia');
+    for (let i = 0; i < citizens; i++) result.push('citizen');
+    return result;
+  }
+
+  function setPlayerCount(n) {
+    playerCount = n;
+    document.querySelectorAll('.player-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    renderPlayerInputs();
+    renderRolePreview();
+  }
+
+  function renderPlayerInputs() {
+    const container = document.getElementById('player-names-container');
+    container.innerHTML = '';
+    for (let i = 1; i <= playerCount; i++) {
+      const div = document.createElement('div');
+      div.className = 'player-name-input';
+      div.innerHTML = `<span class="player-num">${toPersianNum(i)}</span>
+        <input type="text" placeholder="نام بازیکن ${toPersianNum(i)}" id="pname-${i}" />`;
+      container.appendChild(div);
+    }
+  }
+
+  function renderRolePreview() {
+    const dist = getRoleDistribution(playerCount);
+    const counts = {};
+    dist.forEach(r => counts[r] = (counts[r] || 0) + 1);
+    const preview = document.getElementById('role-preview');
+    preview.innerHTML = `<div style="font-size:13px;color:var(--muted);margin-bottom:10px;">توزیع نقش‌ها:</div>
+      <div class="role-counts">${Object.entries(counts).map(([r, c]) => {
+        const role = ROLES[r];
+        return `<div class="role-count-badge">${role.emoji} ${role.name} <span style="color:var(--gold);font-weight:700">×${toPersianNum(c)}</span></div>`;
+      }).join('')}</div>`;
+  }
+
+  function toPersianNum(n) {
+    return n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  }
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function startGame() {
+    players = [];
+    for (let i = 1; i <= playerCount; i++) {
+      const input = document.getElementById(`pname-${i}`);
+      players.push(input.value.trim() || `بازیکن ${toPersianNum(i)}`);
+    }
+
+    const roles = shuffle(getRoleDistribution(playerCount));
+    assignments = players.map((name, idx) => ({ name, role: roles[idx] }));
+
+    currentIndex = 0;
+    showScreen('reveal-screen');
+    loadCurrentPlayer();
+  }
+
+  function loadCurrentPlayer() {
+    const assignment = assignments[currentIndex];
+    const role = ROLES[assignment.role];
+
+    // Update header
+    document.getElementById('current-player-name').textContent = assignment.name;
+
+    // Progress dots
+    const dots = document.getElementById('progress-dots');
+    dots.innerHTML = assignments.map((_, i) => {
+      let cls = 'dot';
+      if (i < currentIndex) cls += ' done';
+      else if (i === currentIndex) cls += ' current';
+      return `<div class="${cls}"></div>`;
+    }).join('');
+
+    // Reset card
+    const card = document.getElementById('role-card');
+    card.classList.remove('flipped');
+    cardFlipped = false;
+    document.getElementById('tap-hint').style.display = 'block';
+    document.getElementById('next-btn').classList.remove('visible');
+
+    // Set card content
+    const front = document.getElementById('card-front-face');
+    front.className = `card-face card-front ${role.bgClass}`;
+    document.getElementById('card-emoji').textContent = role.emoji;
+    document.getElementById('card-role-name').textContent = role.name;
+    const teamEl = document.getElementById('card-team');
+    teamEl.textContent = role.team;
+    teamEl.className = `role-team ${role.teamClass}`;
+    document.getElementById('card-desc').textContent = role.desc;
+
+    // Update next button text
+    const nextBtn = document.getElementById('next-btn');
+    if (currentIndex === assignments.length - 1) {
+      nextBtn.textContent = 'مشاهده خلاصه ✓';
+    } else {
+      nextBtn.textContent = 'بازیکن بعدی ←';
+    }
+  }
+
+  function flipCard() {
+    if (cardFlipped) return;
+    cardFlipped = true;
+    document.getElementById('role-card').classList.add('flipped');
+    document.getElementById('tap-hint').style.display = 'none';
+    document.getElementById('next-btn').classList.add('visible');
+  }
+
+  function nextPlayer() {
+    if (currentIndex === assignments.length - 1) {
+      showSummary();
+      return;
+    }
+
+    const nextIdx = currentIndex + 1;
+    const overlay = document.getElementById('pass-overlay');
+    const passName = document.getElementById('pass-name');
+    passName.textContent = assignments[nextIdx].name;
+    overlay.classList.add('show');
+
+    overlay.onclick = () => {
+      overlay.classList.remove('show');
+      currentIndex = nextIdx;
+      loadCurrentPlayer();
+    };
+  }
+
+  function showSummary() {
+    showScreen('summary-screen');
+
+    const list = document.getElementById('summary-roles-list');
+    list.innerHTML = assignments.map(a => {
+      const role = ROLES[a.role];
+      return `<div class="role-row">
+        <div class="role-row-left">
+          <div class="role-row-emoji">${role.emoji}</div>
+          <div class="role-row-info">
+            <div class="role-row-player">${a.name}</div>
+            <div class="role-row-role">${role.name}</div>
+          </div>
+        </div>
+        <div class="role-row-team ${role.teamClass}">${role.team}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function restartGame() {
+    showScreen('setup-screen');
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // Init
+  renderPlayerInputs();
+  renderRolePreview();
+</script>
+</body>
+</html>
