@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بازی جاسوس</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" 
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" 
+rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: rgba(99,179,237,0.15);
+    --accent: #3b82f6;
+    --accent2: #60a5fa;
+    --spy: #ef4444;
+    --spy2: #f87171;
+    --green: #22c55e;
+    --gold: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --cyan: #06b6d4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Vazirmatn', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline effect */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .screen { display: none; }
+  .screen.active { display: flex; flex-direction: column; min-height: 100vh; animation: fadeUp 0.4s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ====== SETUP ====== */
+  #setup-screen {
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(59,130,246,0.15) 0%, transparent 60%),
+      var(--bg);
+  }
+
+  .hero {
+    text-align: center;
+    margin-bottom: 44px;
+  }
+
+  .hero-icon {
+    font-size: 72px;
+    display: block;
+    filter: drop-shadow(0 0 24px rgba(59,130,246,0.6));
+    animation: float 4s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .hero-title {
+    font-size: 48px;
+    font-weight: 900;
+    letter-spacing: 8px;
+    background: linear-gradient(135deg, var(--cyan), var(--accent2), #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-top: 12px;
+  }
+
+  .hero-sub {
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 4px;
+    margin-top: 8px;
+    text-transform: uppercase;
+  }
+
+  .setup-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px;
+    width: 100%;
+    max-width: 540px;
+    box-shadow: 0 0 60px rgba(59,130,246,0.05), 0 20px 40px rgba(0,0,0,0.4);
+  }
+
+  .section-label {
+    font-size: 11px;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--cyan);
+  }
+
+  .count-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .count-btn {
+    background: transparent;
+    border: 1px solid rgba(99,179,237,0.2);
+    color: var(--muted);
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .count-btn:hover, .count-btn.active {
+    border-color: var(--accent);
+    color: var(--accent2);
+    background: rgba(59,130,246,0.1);
+    box-shadow: 0 0 12px rgba(59,130,246,0.2);
+  }
+
+  #names-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .name-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 8px 12px;
+    transition: border-color 0.2s;
+  }
+
+  .name-field:focus-within {
+    border-color: rgba(59,130,246,0.4);
+  }
+
+  .name-num {
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 18px;
+  }
+
+  .name-field input {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+  }
+
+  /* Spy count */
+  .spy-count-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(239,68,68,0.06);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+  }
+
+  .spy-count-label {
+    font-size: 14px;
+    color: var(--spy2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .spy-counter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .spy-counter button {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid rgba(239,68,68,0.4);
+    background: transparent;
+    color: var(--spy2);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-family: 'Vazirmatn', sans-serif;
+  }
+
+  .spy-counter button:hover {
+    background: rgba(239,68,68,0.15);
+  }
+
+  .spy-count-num {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--spy);
+    min-width: 24px;
+    text-align: center;
+  }
+
+  /* Location categories */
+  .category-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .cat-btn {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+
+  .cat-btn.active {
+    background: rgba(59,130,246,0.12);
+    border-color: var(--accent);
+    color: var(--accent2);
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .start-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s;
+  }
+
+  .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(59,130,246,0.4); }
+  .start-btn:hover::before { left: 100%; }
+
+  /* ====== REVEAL SCREEN ====== */
+  #reveal-screen {
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: var(--bg);
+  }
+
+  .reveal-wrap {
+    width: 100%;
+    max-width: 440px;
+    text-align: center;
+  }
+
+  .reveal-header {
+    margin-bottom: 28px;
+  }
+
+  .turn-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    margin-bottom: 6px;
+  }
+
+  .turn-name {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+
+  .pdots {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 14px;
+  }
+
+  .pdot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    transition: all 0.3s;
+  }
+
+  .pdot.done { background: var(--accent); }
+  .pdot.cur { background: var(--cyan); transform: scale(1.4); box-shadow: 0 0 8px var(--cyan); }
+
+  /* Card */
+  .card-wrap {
+    perspective: 1000px;
+    width: 260px;
+    height: 340px;
+    margin: 0 auto 24px;
+    cursor: pointer;
+  }
+
+  .card-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .card-inner.flipped { transform: rotateY(180deg); }
+
+  .cface {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow: hidden;
+  }
+
+  .cback {
+    background:
+      repeating-linear-gradient(
+        -45deg,
+        rgba(59,130,246,0.05) 0px,
+        rgba(59,130,246,0.05) 1px,
+        transparent 1px,
+        transparent 8px
+      ),
+      var(--surface);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .cback-icon { font-size: 56px; }
+  .cback-txt { font-size: 12px; color: var(--muted); letter-spacing: 2px; }
+
+  .cfront {
+    transform: rotateY(180deg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 20px;
+    border: 1px solid;
+    gap: 10px;
+  }
+
+  .cfront.spy-card {
+    background: linear-gradient(160deg, #1a0505, #2d0808, #0d0303);
+    border-color: rgba(239,68,68,0.4);
+    box-shadow: inset 0 0 40px rgba(239,68,68,0.1);
+  }
+
+  .cfront.citizen-card {
+    background: linear-gradient(160deg, #050f1a, #081828, #030d14);
+    border-color: rgba(59,130,246,0.4);
+    box-shadow: inset 0 0 40px rgba(59,130,246,0.08);
+  }
+
+  .card-role-icon { font-size: 64px; }
+
+  .card-role-name {
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 2px;
+  }
+
+  .spy-card .card-role-name { color: var(--spy2); }
+  .citizen-card .card-role-name { color: var(--accent2); }
+
+  .card-location {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 4px;
+  }
+
+  .card-location-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: rgba(226,232,240,0.5);
+    line-height: 1.8;
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  .spy-badge {
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: var(--spy2);
+    font-size: 11px;
+    padding: 3px 12px;
+    border-radius: 20px;
+    letter-spacing: 2px;
+  }
+
+  .tap-hint {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    animation: blink 2s ease-in-out infinite;
+    margin-bottom: 16px;
+  }
+
+  @keyframes blink {
+    0%,100%{opacity:1} 50%{opacity:0.2}
+  }
+
+  .next-btn {
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: none;
+  }
+
+  .next-btn.show { display: inline-block; }
+  .next-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
+
+  /* ====== GAME SCREEN ====== */
+  #game-screen {
+    align-items: center;
+    justify-content: flex-start;
+    padding: 30px 20px;
+    background:
+      radial-gradient(ellipse 60% 30% at 50% 100%, rgba(239,68,68,0.08) 0%, transparent 60%),
+      var(--bg);
+    gap: 20px;
+  }
+
+  .game-header {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .game-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .timer-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 20px;
+  }
+
+  .timer-label { font-size: 12px; color: var(--muted); }
+  .timer-val {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--cyan);
+    font-variant-numeric: tabular-nums;
+    min-width: 64px;
+    text-align: center;
+    transition: color 0.3s;
+  }
+
+  .timer-val.danger { color: var(--spy); animation: timerPulse 0.5s ease infinite; }
+
+  @keyframes timerPulse {
+    0%,100% { opacity:1 } 50% { opacity:0.4 }
+  }
+
+  .timer-btn {
+    background: rgba(6,182,212,0.1);
+    border: 1px solid rgba(6,182,212,0.3);
+    border-radius: 8px;
+    color: var(--cyan);
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 13px;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .timer-btn:hover { background: rgba(6,182,212,0.2); }
+
+  /* Players status */
+  .players-panel {
+    width: 100%;
+    max-width: 600px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .panel-title {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    margin-bottom: 14px;
+  }
+
+  .players-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .player-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 10px 14px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .player-chip:hover { border-color: rgba(239,68,68,0.3); }
+  .player-chip.eliminated {
+    opacity: 0.4;
+    text-decoration: line-through;
+    background: rgba(239,68,68,0.05);
+    border-color: rgba(239,68,68,0.2);
+  }
+
+  .player-chip-name { font-size: 14px; }
+  .elim-x { color: var(--spy); font-size: 16px; display: none; }
+  .player-chip.eliminated .elim-x { display: block; }
+
+  /* Voting area */
+  .vote-section {
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .vote-title {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+
+  .action-btns {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn-reveal-spy {
+    flex: 1;
+    padding: 14px;
+    background: linear-gradient(135deg, #7f1d1d, #dc2626);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-reveal-spy:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,0.4); }
+
+  .btn-new-game {
+    flex: 1;
+    padding: 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-new-game:hover { border-color: var(--accent); color: var(--accent2); }
+
+  /* ====== RESULT SCREEN ====== */
+  #result-screen {
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: var(--bg);
+  }
+
+  .result-box {
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+  }
+
+  .result-icon { font-size: 80px; margin-bottom: 16px; }
+
+  .result-title {
+    font-size: 32px;
+    font-weight: 900;
+    margin-bottom: 8px;
+  }
+
+  .result-sub {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 32px;
+    line-height: 1.8;
+  }
+
+  .reveal-list {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    text-align: right;
+  }
+
+  .reveal-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .reveal-row:last-child { border-bottom: none; }
+
+  .reveal-name { font-size: 15px; font-weight: 600; }
+  .reveal-role-badge {
+    font-size: 12px;
+    padding: 3px 12px;
+    border-radius: 20px;
+  }
+
+  .badge-spy { background: rgba(239,68,68,0.15); color: var(--spy2); border: 1px solid rgba(239,68,68,0.3); }
+  .badge-citizen { background: rgba(59,130,246,0.1); color: var(--accent2); border: 1px solid rgba(59,130,246,0.2); }
+
+  .location-reveal {
+    background: rgba(6,182,212,0.08);
+    border: 1px solid rgba(6,182,212,0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .loc-icon { font-size: 36px; }
+  .loc-info { text-align: right; }
+  .loc-label { font-size: 11px; color: var(--muted); letter-spacing: 2px; }
+  .loc-name { font-size: 22px; font-weight: 700; color: var(--cyan); }
+
+  .play-again-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .play-again-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(59,130,246,0.4); }
+
+  /* Pass overlay */
+  .pass-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(13,17,23,0.97);
+    z-index: 9998;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s;
+    backdrop-filter: blur(8px);
+  }
+
+  .pass-overlay.show { opacity: 1; pointer-events: all; }
+  .pass-overlay-label { font-size: 12px; color: var(--muted); letter-spacing: 3px; }
+  .pass-overlay-name { font-size: 30px; font-weight: 900; color: var(--accent2); }
+  .pass-overlay-hint { font-size: 12px; color: rgba(100,116,139,0.6); margin-top: 8px; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.3); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- Pass Overlay -->
+<div class="pass-overlay" id="pass-overlay">
+  <div class="pass-overlay-label">نوبت بعدی:</div>
+  <div class="pass-overlay-name" id="pass-name"></div>
+  <div class="pass-overlay-hint">برای ادامه کلیک کنید</div>
+</div>
+
+<!-- ===== SETUP SCREEN ===== -->
+<div class="screen active" id="setup-screen">
+  <div class="hero">
+    <span class="hero-icon">🕵️</span>
+    <div class="hero-title">جاسوس</div>
+    <div class="hero-sub">بازی گروهی استراتژیک</div>
+  </div>
+
+  <div class="setup-card">
+    <div class="section-label">تعداد بازیکنان</div>
+    <div class="count-selector" id="count-btns">
+      <button class="count-btn" onclick="setCount(4)">۴ نفر</button>
+      <button class="count-btn active" onclick="setCount(5)">۵ نفر</button>
+      <button class="count-btn" onclick="setCount(6)">۶ نفر</button>
+      <button class="count-btn" onclick="setCount(7)">۷ نفر</button>
+      <button class="count-btn" onclick="setCount(8)">۸ نفر</button>
+      <button class="count-btn" onclick="setCount(10)">۱۰ نفر</button>
+    </div>
+
+    <div id="names-grid"></div>
+
+    <div class="spy-count-row">
+      <div class="spy-count-label">🕵️ تعداد جاسوس‌ها</div>
+      <div class="spy-counter">
+        <button onclick="changeSpy(-1)">−</button>
+        <div class="spy-count-num" id="spy-num">۱</div>
+        <button onclick="changeSpy(1)">+</button>
+      </div>
+    </div>
+
+    <div class="section-label">دسته‌بندی مکان‌ها</div>
+    <div class="category-grid" id="cat-grid"></div>
+
+    <div class="section-label">زمان بازی</div>
+    <div class="count-selector" style="margin-bottom:28px;">
+      <button class="count-btn" onclick="setTimer(5)">۵ دقیقه</button>
+      <button class="count-btn active" onclick="setTimer(8)">۸ دقیقه</button>
+      <button class="count-btn" onclick="setTimer(10)">۱۰ دقیقه</button>
+      <button class="count-btn" onclick="setTimer(12)">۱۲ دقیقه</button>
+    </div>
+
+    <button class="start-btn" onclick="startGame()">▶ شروع توزیع نقش‌ها</button>
+  </div>
+</div>
+
+<!-- ===== REVEAL SCREEN ===== -->
+<div class="screen" id="reveal-screen">
+  <div class="reveal-wrap">
+    <div class="reveal-header">
+      <div class="turn-label">نوبت بازیکن:</div>
+      <div class="turn-name" id="reveal-player-name">—</div>
+      <div class="pdots" id="pdots"></div>
+    </div>
+
+    <div class="card-wrap" onclick="flipCard()">
+      <div class="card-inner" id="card-inner">
+        <div class="cface cback">
+          <span class="cback-icon">🂠</span>
+          <div class="cback-txt">کلیک کنید</div>
+        </div>
+        <div class="cface cfront" id="card-front">
+          <div class="card-role-icon" id="card-icon"></div>
+          <div id="card-badge"></div>
+          <div class="card-role-name" id="card-rname"></div>
+          <div class="card-location-label" id="card-loc-label"></div>
+          <div class="card-location" id="card-loc"></div>
+          <div class="card-desc" id="card-desc"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tap-hint" id="tap-hint">👆 روی کارت کلیک کنید</div>
+    <button class="next-btn" id="next-btn" onclick="nextReveal()">بازیکن بعدی ←</button>
+  </div>
+</div>
+
+<!-- ===== GAME SCREEN ===== -->
+<div class="screen" id="game-screen">
+  <div class="game-header">
+    <div class="game-title">🕵️ بازی جاسوس</div>
+    <div class="timer-box">
+      <div class="timer-label">زمان:</div>
+      <div class="timer-val" id="timer-display">08:00</div>
+      <button class="timer-btn" id="timer-toggle-btn" onclick="toggleTimer()">شروع</button>
+    </div>
+  </div>
+
+  <div class="players-panel">
+    <div class="panel-title">بازیکنان — کلیک برای حذف</div>
+    <div class="players-list" id="players-list"></div>
+  </div>
+
+  <div class="vote-section">
+    <div class="vote-title">🗳️ وقتی آماده رای‌گیری شدید:</div>
+    <div class="action-btns">
+      <button class="btn-reveal-spy" onclick="showResult()">🎭 نمایش نتیجه</button>
+      <button class="btn-new-game" onclick="newGame()">↺ بازی جدید</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RESULT SCREEN ===== -->
+<div class="screen" id="result-screen">
+  <div class="result-box">
+    <div class="result-icon" id="result-icon"></div>
+    <div class="result-title" id="result-title"></div>
+    <div class="result-sub" id="result-sub"></div>
+
+    <div class="location-reveal">
+      <div class="loc-icon" id="res-loc-icon"></div>
+      <div class="loc-info">
+        <div class="loc-label">مکان بازی</div>
+        <div class="loc-name" id="res-loc-name"></div>
+      </div>
+    </div>
+
+    <div class="reveal-list" id="reveal-list"></div>
+    <button class="play-again-btn" onclick="newGame()">↺ بازی جدید</button>
+  </div>
+</div>
+
+<script>
+// ===== LOCATIONS DATABASE =====
+const LOCATIONS = {
+  'عمومی': [
+    { name: 'فرودگاه', icon: '✈️' },
+    { name: 'بیمارستان', icon: '🏥' },
+    { name: 'رستوران', icon: '🍽️' },
+    { name: 'هتل', icon: '🏨' },
+    { name: 'دانشگاه', icon: '🎓' },
+    { name: 'بانک', icon: '🏦' },
+    { name: 'سینما', icon: '🎬' },
+    { name: 'پارک', icon: '🌳' },
+  ],
+  'هیجانی': [
+    { name: 'کشتی دزدان دریایی', icon: '🏴‍☠️' },
+    { name: 'ایستگاه فضایی', icon: '🚀' },
+    { name: 'قلعه قرون وسطی', icon: '🏰' },
+    { name: 'زیردریایی', icon: '🤿' },
+    { name: 'سیرک', icon: '🎪' },
+    { name: 'معدن طلا', icon: '⛏️' },
+  ],
+  'ایران': [
+    { name: 'بازار تهران', icon: '🛒' },
+    { name: 'برج میلاد', icon: '🗼' },
+    { name: 'تخت جمشید', icon: '🏛️' },
+    { name: 'جزیره کیش', icon: '🏝️' },
+    { name: 'دربند', icon: '⛰️' },
+    { name: 'مسجد نصیرالملک', icon: '🕌' },
+  ]
+};
+
+// ===== STATE =====
+let playerCount = 5;
+let spyCount = 1;
+let timerMinutes = 8;
+let selectedCategories = ['عمومی'];
+let players = [];
+let assignments = [];
+let currentRevealIdx = 0;
+let cardFlipped = false;
+let currentLocation = null;
+let timerInterval = null;
+let timerSeconds = 0;
+let timerRunning = false;
+
+// ===== INIT =====
+function init() {
+  renderCategoryGrid();
+  renderNamesGrid();
+}
+
+function renderCategoryGrid() {
+  const grid = document.getElementById('cat-grid');
+  grid.innerHTML = Object.keys(LOCATIONS).map(cat => {
+    const active = selectedCategories.includes(cat) ? 'active' : '';
+    return `<button class="cat-btn ${active}" onclick="toggleCat('${cat}')">${cat}</button>`;
+  }).join('');
+}
+
+function toggleCat(cat) {
+  if (selectedCategories.includes(cat)) {
+    if (selectedCategories.length === 1) return;
+    selectedCategories = selectedCategories.filter(c => c !== cat);
+  } else {
+    selectedCategories.push(cat);
+  }
+  renderCategoryGrid();
+}
+
+function setCount(n) {
+  playerCount = n;
+  document.querySelectorAll('#count-btns .count-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  if (spyCount >= playerCount) spyCount = Math.max(1, playerCount - 2);
+  updateSpyDisplay();
+  renderNamesGrid();
+}
+
+function changeSpy(d) {
+  spyCount = Math.max(1, Math.min(playerCount - 2, spyCount + d));
+  updateSpyDisplay();
+}
+
+function updateSpyDisplay() {
+  document.getElementById('spy-num').textContent = toPersian(spyCount);
+}
+
+function setTimer(mins) {
+  timerMinutes = mins;
+  document.querySelectorAll('.count-selector:last-of-type .count-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function renderNamesGrid() {
+  const grid = document.getElementById('names-grid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= playerCount; i++) {
+    const div = document.createElement('div');
+    div.className = 'name-field';
+    div.innerHTML = `<span class="name-num">${toPersian(i)}</span>
+      <input type="text" placeholder="بازیکن ${toPersian(i)}" id="pn-${i}">`;
+    grid.appendChild(div);
+  }
+}
+
+// ===== GAME START =====
+function startGame() {
+  players = [];
+  for (let i = 1; i <= playerCount; i++) {
+    const v = document.getElementById(`pn-${i}`).value.trim();
+    players.push(v || `بازیکن ${toPersian(i)}`);
+  }
+
+  // Pick location
+  const pool = selectedCategories.flatMap(c => LOCATIONS[c]);
+  currentLocation = pool[Math.floor(Math.random() * pool.length)];
+
+  // Assign roles
+  const roles = ['جاسوس'.repeat(0)];
+  const roleArr = [];
+  for (let i = 0; i < spyCount; i++) roleArr.push('spy');
+  for (let i = 0; i < playerCount - spyCount; i++) roleArr.push('citizen');
+  const shuffled = shuffle(roleArr);
+  assignments = players.map((name, i) => ({ name, role: shuffled[i] }));
+
+  currentRevealIdx = 0;
+  showScreen('reveal-screen');
+  loadReveal();
+}
+
+function loadReveal() {
+  const a = assignments[currentRevealIdx];
+  const isSpy = a.role === 'spy';
+
+  document.getElementById('reveal-player-name').textContent = a.name;
+
+  // Dots
+  const dots = document.getElementById('pdots');
+  dots.innerHTML = assignments.map((_, i) => {
+    let cls = 'pdot';
+    if (i < currentRevealIdx) cls += ' done';
+    else if (i === currentRevealIdx) cls += ' cur';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+
+  // Reset card
+  document.getElementById('card-inner').classList.remove('flipped');
+  cardFlipped = false;
+  document.getElementById('tap-hint').style.display = 'block';
+  document.getElementById('next-btn').classList.remove('show');
+
+  // Card content
+  const front = document.getElementById('card-front');
+  front.className = `cface cfront ${isSpy ? 'spy-card' : 'citizen-card'}`;
+
+  if (isSpy) {
+    document.getElementById('card-icon').textContent = '🕵️';
+    document.getElementById('card-badge').innerHTML = `<div class="spy-badge">جاسوس</div>`;
+    document.getElementById('card-rname').textContent = 'تو جاسوسی!';
+    document.getElementById('card-loc-label').textContent = '';
+    document.getElementById('card-loc').textContent = '';
+    document.getElementById('card-desc').textContent = 'مکان رو نمی‌دونی! سوال بپرس، بفهم کجان و لو نده که جاسوسی.';
+  } else {
+    document.getElementById('card-icon').textContent = currentLocation.icon;
+    document.getElementById('card-badge').innerHTML = ``;
+    document.getElementById('card-rname').textContent = 'شهروند';
+    document.getElementById('card-loc-label').textContent = '📍 مکان بازی';
+    document.getElementById('card-loc').textContent = currentLocation.name;
+    document.getElementById('card-desc').textContent = 'جاسوس رو پیدا کن! سوال بپرس و مراقب باش که مکان رو لو ندی.';
+  }
+
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.textContent = currentRevealIdx === assignments.length - 1 ? 'شروع بازی ▶' : 'بازیکن بعدی ←';
+}
+
+function flipCard() {
+  if (cardFlipped) return;
+  cardFlipped = true;
+  document.getElementById('card-inner').classList.add('flipped');
+  document.getElementById('tap-hint').style.display = 'none';
+  document.getElementById('next-btn').classList.add('show');
+}
+
+function nextReveal() {
+  if (currentRevealIdx === assignments.length - 1) {
+    startMainGame();
+    return;
+  }
+
+  const nextIdx = currentRevealIdx + 1;
+  const overlay = document.getElementById('pass-overlay');
+  document.getElementById('pass-name').textContent = assignments[nextIdx].name;
+  overlay.classList.add('show');
+  overlay.onclick = () => {
+    overlay.classList.remove('show');
+    currentRevealIdx = nextIdx;
+    loadReveal();
+  };
+}
+
+// ===== MAIN GAME =====
+function startMainGame() {
+  showScreen('game-screen');
+
+  // Build players list
+  const list = document.getElementById('players-list');
+  list.innerHTML = assignments.map((a, i) =>
+    `<div class="player-chip" id="chip-${i}" onclick="toggleEliminate(${i})">
+      <span class="player-chip-name">${a.name}</span>
+      <span class="elim-x">✕</span>
+    </div>`
+  ).join('');
+
+  // Timer
+  timerSeconds = timerMinutes * 60;
+  timerRunning = false;
+  updateTimerDisplay();
+  document.getElementById('timer-toggle-btn').textContent = 'شروع';
+}
+
+function toggleEliminate(idx) {
+  document.getElementById(`chip-${idx}`).classList.toggle('eliminated');
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timer-toggle-btn').textContent = 'ادامه';
+  } else {
+    timerRunning = true;
+    document.getElementById('timer-toggle-btn').textContent = 'توقف';
+    timerInterval = setInterval(() => {
+      timerSeconds--;
+      updateTimerDisplay();
+      if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        document.getElementById('timer-toggle-btn').textContent = 'تمام';
+      }
+    }, 1000);
+  }
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSeconds / 60);
+  const s = timerSeconds % 60;
+  const str = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const el = document.getElementById('timer-display');
+  el.textContent = str;
+  el.className = 'timer-val' + (timerSeconds <= 30 ? ' danger' : '');
+}
+
+// ===== RESULT =====
+function showResult() {
+  if (timerInterval) clearInterval(timerInterval);
+  showScreen('result-screen');
+
+  const spies = assignments.filter(a => a.role === 'spy');
+
+  document.getElementById('result-icon').textContent = '🎭';
+  document.getElementById('result-title').textContent = 'نتیجه بازی';
+  document.getElementById('result-sub').textContent =
+    `جاسوس${spies.length > 1 ? 'ها' : ''}: ${spies.map(s => s.name).join('، ')}\nمکان: ${currentLocation.name}`;
+
+  document.getElementById('res-loc-icon').textContent = currentLocation.icon;
+  document.getElementById('res-loc-name').textContent = currentLocation.name;
+
+  const list = document.getElementById('reveal-list');
+  list.innerHTML = assignments.map(a =>
+    `<div class="reveal-row">
+      <div class="reveal-name">${a.name}</div>
+      <div class="reveal-role-badge ${a.role === 'spy' ? 'badge-spy' : 'badge-citizen'}">
+        ${a.role === 'spy' ? '🕵️ جاسوس' : '👤 شهروند'}
+      </div>
+    </div>`
+  ).join('');
+}
+
+function newGame() {
+  if (timerInterval) clearInterval(timerInterval);
+  showScreen('setup-screen');
+}
+
+// ===== HELPERS =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function toPersian(n) {
+  return n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+}
+
+init();
+</script>
+</body>
+</html>

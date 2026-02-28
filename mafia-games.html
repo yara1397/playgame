@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مافیا — نسخه گرداننده</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#07080d; --surface:#10121a; --surface2:#181c28;
+  --border:rgba(201,168,76,.12); --gold:#c9a84c; --gold2:#e8c96a;
+  --blood:#8b0000; --crimson:#dc143c; --crimson2:#ff4060;
+  --green:#22c55e; --blue:#3b82f6; --purple:#a855f7; --cyan:#06b6d4;
+  --text:#e8e0d0; --muted:#6b6458;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5;}
+
+.screen{display:none;}
+.screen.active{display:flex;flex-direction:column;min-height:100vh;animation:fadeUp .45s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* ========= SETUP ========= */
+#setup-screen{align-items:center;justify-content:center;padding:40px 20px;background:radial-gradient(ellipse 70% 45% at 50% -5%,rgba(139,0,0,.28) 0%,transparent 65%),var(--bg);}
+.logo{text-align:center;margin-bottom:44px;}
+.logo-icon{font-size:76px;display:block;filter:drop-shadow(0 0 22px rgba(220,20,60,.55));animation:breathe 3.5s ease-in-out infinite;}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.logo-title{font-size:50px;font-weight:900;letter-spacing:7px;background:linear-gradient(135deg,var(--gold),#fff5d6,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-top:10px;}
+.logo-sub{color:var(--muted);font-size:12px;letter-spacing:4px;margin-top:7px;}
+.setup-box{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:36px;width:100%;max-width:540px;box-shadow:0 24px 60px rgba(0,0,0,.6);}
+.sec-label{font-size:11px;color:var(--gold);letter-spacing:3px;text-transform:uppercase;margin-bottom:11px;display:flex;align-items:center;gap:8px;}
+.sec-label::before{content:'';width:18px;height:1px;background:var(--gold);}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px;}
+.chip{background:transparent;border:1px solid rgba(201,168,76,.25);color:var(--muted);padding:7px 16px;border-radius:8px;cursor:pointer;font-family:'Vazirmatn',sans-serif;font-size:13px;transition:all .2s;}
+.chip:hover,.chip.on{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.1);}
+#names-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:22px;}
+.nfield{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:8px 12px;transition:border-color .2s;}
+.nfield:focus-within{border-color:rgba(201,168,76,.4);}
+.nnum{font-size:11px;color:var(--muted);min-width:20px;}
+.nfield input{background:transparent;border:none;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:13px;outline:none;width:100%;}
+#role-preview{margin-bottom:22px;}
+.rbadge-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px;}
+.rbadge{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:5px 12px;font-size:12px;}
+.big-btn{width:100%;padding:15px;border:none;border-radius:11px;color:white;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:2px;transition:all .3s;position:relative;overflow:hidden;}
+.big-btn.red{background:linear-gradient(135deg,var(--blood),var(--crimson));}
+.big-btn.red:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(220,20,60,.4);}
+
+/* ========= REVEAL ========= */
+#reveal-screen{align-items:center;justify-content:center;padding:40px 20px;background:var(--bg);}
+.reveal-wrap{width:100%;max-width:440px;text-align:center;}
+.rturn-lbl{font-size:12px;color:var(--muted);letter-spacing:3px;margin-bottom:6px;}
+.rturn-name{font-size:28px;font-weight:700;color:var(--gold);}
+.pdots{display:flex;justify-content:center;gap:5px;margin-top:14px;}
+.pdot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.08);transition:all .3s;}
+.pdot.done{background:var(--gold);}
+.pdot.cur{background:var(--crimson);transform:scale(1.4);box-shadow:0 0 8px var(--crimson);}
+.card-wrap{perspective:1000px;width:270px;height:360px;margin:0 auto 22px;cursor:pointer;}
+.card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.4,0,.2,1);}
+.card-inner.flipped{transform:rotateY(180deg);}
+.cface{position:absolute;inset:0;border-radius:20px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;}
+.cback{background:repeating-linear-gradient(-45deg,rgba(139,0,0,.08) 0px,rgba(139,0,0,.08) 1px,transparent 1px,transparent 9px),var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+.cback-icon{font-size:58px;} .cback-txt{font-size:12px;color:var(--muted);letter-spacing:2px;}
+.cfront{transform:rotateY(180deg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 22px;border:1px solid;gap:10px;}
+.cfront.bg-mafia-boss{background:linear-gradient(160deg,#1a0510,#2d0018,#0d0005);border-color:rgba(220,20,60,.4);}
+.cfront.bg-mafia{background:linear-gradient(160deg,#120008,#200010,#0a0005);border-color:rgba(180,0,40,.35);}
+.cfront.bg-doctor{background:linear-gradient(160deg,#001520,#002535,#000d15);border-color:rgba(6,182,212,.3);}
+.cfront.bg-lecter{background:linear-gradient(160deg,#100015,#1a0025,#080010);border-color:rgba(168,85,247,.35);}
+.cfront.bg-detective{background:linear-gradient(160deg,#051200,#0d2000,#030900);border-color:rgba(34,197,94,.3);}
+.cfront.bg-psychologist{background:linear-gradient(160deg,#100510,#200a20,#0a020a);border-color:rgba(168,85,247,.25);}
+.cfront.bg-sniper{background:linear-gradient(160deg,#0a1200,#152000,#060d00);border-color:rgba(251,191,36,.3);}
+.cfront.bg-citizen{background:linear-gradient(160deg,#080808,#121212,#050505);border-color:rgba(255,255,255,.1);}
+.c-emoji{font-size:68px;} .c-name{font-size:24px;font-weight:900;letter-spacing:2px;}
+.c-team{font-size:11px;letter-spacing:3px;padding:4px 12px;border-radius:20px;font-weight:600;}
+.team-mafia{background:rgba(139,0,0,.3);color:#ff6b6b;border:1px solid rgba(220,20,60,.4);}
+.team-citizen{background:rgba(0,100,0,.2);color:#6bff8a;border:1px solid rgba(0,200,0,.3);}
+.c-desc{font-size:12px;color:rgba(232,224,208,.65);line-height:1.9;text-align:center;}
+.tap-hint{font-size:12px;color:var(--muted);letter-spacing:1px;animation:blink 2s ease-in-out infinite;margin-bottom:16px;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.next-btn{padding:12px 40px;background:linear-gradient(135deg,var(--blood),var(--crimson));border:none;border-radius:10px;color:white;font-family:'Vazirmatn',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:none;}
+.next-btn.show{display:inline-block;}
+.next-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(220,20,60,.4);}
+
+/* ========= GAME SCREEN ========= */
+#game-screen{align-items:center;justify-content:flex-start;padding:0;min-height:100vh;transition:background .8s;}
+#game-screen.night-mode{background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(4,5,20,.9) 0%,#04050a 100%);}
+#game-screen.day-mode{background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(20,30,10,.9) 0%,#0d100a 100%);}
+
+.game-topbar{width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:rgba(0,0,0,.4);border-bottom:1px solid var(--border);backdrop-filter:blur(10px);position:sticky;top:0;z-index:100;}
+.phase-badge{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;letter-spacing:1px;padding:7px 18px;border-radius:30px;transition:all .5s;}
+.phase-badge.night{background:rgba(30,0,80,.5);border:1px solid rgba(120,60,255,.4);color:#c4b5fd;}
+.phase-badge.day{background:rgba(30,60,0,.5);border:1px solid rgba(100,200,50,.4);color:#86efac;}
+.round-info{font-size:12px;color:var(--muted);letter-spacing:2px;}
+.topbar-actions{display:flex;gap:8px;}
+.tb-btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:var(--muted);font-family:'Vazirmatn',sans-serif;font-size:12px;padding:7px 14px;cursor:pointer;transition:all .2s;}
+.tb-btn:hover{background:rgba(255,255,255,.1);color:var(--text);}
+.tb-btn.danger{border-color:rgba(220,20,60,.3);color:rgba(220,20,60,.7);}
+.tb-btn.danger:hover{background:rgba(220,20,60,.1);color:var(--crimson);}
+
+.game-body{width:100%;max-width:680px;margin:0 auto;padding:20px;display:flex;flex-direction:column;gap:16px;}
+.sec-title{font-size:11px;color:var(--muted);letter-spacing:3px;margin-bottom:12px;text-transform:uppercase;}
+
+/* Players grid */
+.players-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;}
+.pcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;transition:all .25s;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;}
+.pcard:hover:not(.dead){border-color:rgba(201,168,76,.35);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.4);}
+.pcard.dead{opacity:.35;filter:grayscale(1);}
+.pcard.dead::after{content:'✕';position:absolute;top:8px;left:10px;font-size:18px;color:var(--crimson);}
+.pcard.silenced{border-color:rgba(168,85,247,.4)!important;background:rgba(168,85,247,.04);}
+.pcard.protected{border-color:rgba(34,197,94,.4)!important;background:rgba(34,197,94,.04);}
+.pcard-name{font-size:14px;font-weight:600;}
+.pcard-role{font-size:11px;color:var(--muted);}
+.pcard-status{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px;}
+.sp{font-size:10px;padding:2px 7px;border-radius:10px;}
+.sp-dead{background:rgba(220,20,60,.15);color:var(--crimson2);border:1px solid rgba(220,20,60,.25);}
+.sp-silent{background:rgba(168,85,247,.15);color:#d8b4fe;border:1px solid rgba(168,85,247,.25);}
+.sp-protect{background:rgba(34,197,94,.12);color:#86efac;border:1px solid rgba(34,197,94,.2);}
+.sp-sniper{background:rgba(251,191,36,.12);color:#fde68a;border:1px solid rgba(251,191,36,.2);}
+
+/* Panels */
+.panel{background:var(--surface);border-radius:14px;padding:20px;display:none;}
+.panel.show{display:block;}
+.night-panel{border:1px solid rgba(120,60,255,.2);}
+.day-panel{border:1px solid rgba(100,200,50,.18);}
+.sniper-panel{border:1px solid rgba(251,191,36,.2);}
+.panel-title{font-size:13px;letter-spacing:2px;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.night-panel .panel-title{color:#c4b5fd;}
+.day-panel .panel-title{color:#86efac;}
+.sniper-panel .panel-title{color:#fde68a;}
+
+.action-block{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.05);}
+.action-block:last-of-type{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+.action-role-lbl{font-size:12px;font-weight:600;letter-spacing:1px;margin-bottom:10px;color:var(--muted);}
+.apills{display:flex;flex-wrap:wrap;gap:6px;}
+.apill{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer;transition:all .2s;font-family:'Vazirmatn',sans-serif;color:var(--text);}
+.apill:hover{background:rgba(255,255,255,.1);}
+.apill.sel-kill{background:rgba(139,0,0,.3);border-color:var(--crimson);color:var(--crimson2);}
+.apill.sel-save{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.5);color:#86efac;}
+.apill.sel-check{background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.5);color:#93c5fd;}
+.apill.sel-silence{background:rgba(168,85,247,.15);border-color:rgba(168,85,247,.5);color:#d8b4fe;}
+.apill.sel-vote{background:rgba(139,0,0,.25);border-color:var(--crimson);color:var(--crimson2);}
+.apill.sel-sniper{background:rgba(251,191,36,.2);border-color:rgba(251,191,36,.5);color:#fde68a;}
+
+.resolve-btn{width:100%;padding:13px;border:1px solid;border-radius:10px;font-family:'Vazirmatn',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:14px;transition:all .2s;letter-spacing:1px;}
+.resolve-btn.purple{background:linear-gradient(135deg,#1e0840,#4c1d95);border-color:rgba(168,85,247,.4);color:#e9d5ff;}
+.resolve-btn.red{background:linear-gradient(135deg,var(--blood),var(--crimson));border-color:transparent;color:white;}
+.resolve-btn.amber{background:linear-gradient(135deg,#78350f,#d97706);border-color:rgba(251,191,36,.4);color:#fde68a;}
+.resolve-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.4);}
+
+/* Log */
+.log-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.log-title{font-size:11px;color:var(--muted);letter-spacing:3px;margin-bottom:12px;}
+.log-list{display:flex;flex-direction:column;gap:6px;max-height:190px;overflow-y:auto;}
+.log-item{font-size:12px;padding:7px 12px;border-radius:7px;border-right:3px solid;line-height:1.6;}
+.log-night{background:rgba(100,40,200,.1);border-color:#7c3aed;color:#c4b5fd;}
+.log-day{background:rgba(30,80,10,.12);border-color:#16a34a;color:#86efac;}
+.log-death{background:rgba(139,0,0,.15);border-color:var(--crimson);color:var(--crimson2);}
+.log-save{background:rgba(34,197,94,.08);border-color:#16a34a;color:#86efac;}
+.log-info{background:rgba(59,130,246,.1);border-color:#2563eb;color:#93c5fd;}
+.log-system{background:rgba(255,255,255,.04);border-color:var(--muted);color:var(--muted);}
+
+/* Modals */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px;width:100%;max-width:460px;text-align:center;animation:fadeUp .4s ease;}
+.report-box{background:var(--surface2);border:1px solid rgba(168,85,247,.3);border-radius:16px;padding:24px;width:100%;max-width:440px;animation:fadeUp .4s ease;}
+.modal-icon{font-size:72px;margin-bottom:14px;}
+.modal-title{font-size:28px;font-weight:900;margin-bottom:8px;}
+.modal-sub{color:var(--muted);font-size:13px;line-height:1.8;margin-bottom:28px;}
+.result-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;text-align:right;}
+.rrow{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:12px 16px;}
+.rrow-left{display:flex;align-items:center;gap:12px;}
+.rrow-emoji{font-size:26px;}
+.rrow-name{font-size:14px;font-weight:600;}
+.rrow-role-txt{font-size:11px;color:var(--muted);}
+.rrow-team{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;}
+.modal-btn{width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--blood),var(--crimson));color:white;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:2px;}
+.modal-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(220,20,60,.4);}
+.report-title{font-size:20px;font-weight:700;color:#c4b5fd;margin-bottom:18px;text-align:center;}
+.report-items{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+.ri{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;font-size:14px;}
+.ri.death{background:rgba(139,0,0,.2);border:1px solid rgba(220,20,60,.3);color:var(--crimson2);}
+.ri.saved{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#86efac;}
+.ri.silent{background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);color:#d8b4fe;}
+.ri.none{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--muted);}
+.ri-icon{font-size:22px;}
+.continue-btn{width:100%;padding:13px;background:linear-gradient(135deg,#1e0840,#4c1d95);border:1px solid rgba(168,85,247,.4);border-radius:10px;color:#e9d5ff;font-family:'Vazirmatn',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;}
+.continue-btn:hover{transform:translateY(-2px);}
+
+/* Check popup */
+.check-popup{position:fixed;bottom:24px;right:24px;background:var(--surface2);border-radius:12px;padding:16px 20px;font-size:14px;display:none;z-index:600;animation:slideIn .3s ease;border:1px solid;}
+.check-popup.mafia-r{border-color:rgba(220,20,60,.4);color:var(--crimson2);}
+.check-popup.citizen-r{border-color:rgba(34,197,94,.4);color:#86efac;}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* Pass overlay */
+.pass-ov{position:fixed;inset:0;background:rgba(7,8,13,.96);z-index:998;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;opacity:0;pointer-events:none;transition:opacity .35s;backdrop-filter:blur(6px);}
+.pass-ov.show{opacity:1;pointer-events:all;}
+.pass-lbl{font-size:11px;color:var(--muted);letter-spacing:3px;}
+.pass-name{font-size:30px;font-weight:900;color:var(--gold);}
+.pass-hint{font-size:12px;color:rgba(107,100,88,.6);margin-top:6px;}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(201,168,76,.25);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- Pass Overlay -->
+<div class="pass-ov" id="pass-ov">
+  <div class="pass-lbl">نوبت بعدی:</div>
+  <div class="pass-name" id="pass-name"></div>
+  <div class="pass-hint">برای ادامه کلیک کنید</div>
+</div>
+
+<!-- Night Report Modal -->
+<div class="modal-overlay" id="report-modal">
+  <div class="report-box">
+    <div class="report-title">🌙 گزارش شب</div>
+    <div class="report-items" id="report-items"></div>
+    <button class="continue-btn" onclick="closeReport()">ادامه به روز ←</button>
+  </div>
+</div>
+
+<!-- End Game Modal -->
+<div class="modal-overlay" id="end-modal">
+  <div class="modal-box">
+    <div class="modal-icon" id="end-icon"></div>
+    <div class="modal-title" id="end-title"></div>
+    <div class="modal-sub" id="end-sub"></div>
+    <div class="result-rows" id="end-rows"></div>
+    <button class="modal-btn" onclick="location.reload()">↺ بازی جدید</button>
+  </div>
+</div>
+
+<!-- Detective popup -->
+<div class="check-popup" id="check-popup"></div>
+
+<!-- ===== SETUP ===== -->
+<div class="screen active" id="setup-screen">
+  <div class="logo">
+    <span class="logo-icon">🎭</span>
+    <div class="logo-title">مافیا</div>
+    <div class="logo-sub">نسخه گرداننده حرفه‌ای</div>
+  </div>
+  <div class="setup-box">
+    <div class="sec-label">تعداد بازیکنان</div>
+    <div class="chip-row" id="count-chips">
+      <button class="chip" onclick="setCount(6,this)">۶ نفر</button>
+      <button class="chip on" onclick="setCount(7,this)">۷ نفر</button>
+      <button class="chip" onclick="setCount(8,this)">۸ نفر</button>
+      <button class="chip" onclick="setCount(9,this)">۹ نفر</button>
+      <button class="chip" onclick="setCount(10,this)">۱۰ نفر</button>
+      <button class="chip" onclick="setCount(12,this)">۱۲ نفر</button>
+    </div>
+    <div id="names-grid"></div>
+    <div id="role-preview"></div>
+    <button class="big-btn red" onclick="startGame()">▶ شروع توزیع نقش‌ها</button>
+  </div>
+</div>
+
+<!-- ===== REVEAL ===== -->
+<div class="screen" id="reveal-screen">
+  <div class="reveal-wrap">
+    <div style="margin-bottom:28px;text-align:center;">
+      <div class="rturn-lbl">نوبت بازیکن:</div>
+      <div class="rturn-name" id="rv-name">—</div>
+      <div class="pdots" id="pdots"></div>
+    </div>
+    <div class="card-wrap" onclick="flipCard()">
+      <div class="card-inner" id="card-inner">
+        <div class="cface cback">
+          <span class="cback-icon">🂠</span>
+          <div class="cback-txt">کلیک کنید</div>
+        </div>
+        <div class="cface cfront" id="card-front">
+          <div class="c-emoji" id="c-emoji"></div>
+          <div class="c-name" id="c-name"></div>
+          <div class="c-team" id="c-team"></div>
+          <div class="c-desc" id="c-desc"></div>
+        </div>
+      </div>
+    </div>
+    <div class="tap-hint" id="tap-hint">👆 روی کارت کلیک کنید</div>
+    <button class="next-btn" id="next-btn" onclick="nextReveal()">بازیکن بعدی ←</button>
+  </div>
+</div>
+
+<!-- ===== GAME ===== -->
+<div class="screen night-mode" id="game-screen">
+  <div class="game-topbar">
+    <div class="phase-badge night" id="phase-badge">🌙 شب اول</div>
+    <div class="round-info" id="round-info">دور ۱</div>
+    <div class="topbar-actions">
+      <button class="tb-btn" onclick="togglePhase()">تغییر فاز</button>
+      <button class="tb-btn danger" onclick="forceEnd()">پایان بازی</button>
+    </div>
+  </div>
+
+  <div class="game-body">
+
+    <div>
+      <div class="sec-title">بازیکنان</div>
+      <div class="players-grid" id="players-grid"></div>
+    </div>
+
+    <!-- Night panel -->
+    <div class="panel night-panel" id="night-panel">
+      <div class="panel-title">🌙 اقدامات شبانه</div>
+
+      <div class="action-block">
+        <div class="action-role-lbl">👑🔫 انتخاب هدف توسط مافیا:</div>
+        <div class="apills" id="mafia-targets"></div>
+      </div>
+      <div class="action-block" id="doctor-block">
+        <div class="action-role-lbl">🩺 دکتر — نجات می‌دهد:</div>
+        <div class="apills" id="doctor-targets"></div>
+      </div>
+      <div class="action-block" id="lecter-block">
+        <div class="action-role-lbl">🧠 دکتر لکتر — نجات می‌دهد:</div>
+        <div class="apills" id="lecter-targets"></div>
+      </div>
+      <div class="action-block" id="detective-block">
+        <div class="action-role-lbl">🔍 کاراگاه — استعلام:</div>
+        <div class="apills" id="detective-targets"></div>
+      </div>
+      <div class="action-block" id="psych-block">
+        <div class="action-role-lbl">🪄 روانشناس — سکوت می‌کند:</div>
+        <div class="apills" id="psych-targets"></div>
+      </div>
+
+      <button class="resolve-btn purple" onclick="resolveNight()">⚡ اجرای اقدامات شب</button>
+    </div>
+
+    <!-- Sniper panel (day) -->
+    <div class="panel sniper-panel" id="sniper-panel">
+      <div class="panel-title">🎯 تک‌تیرانداز — شلیک می‌کند:</div>
+      <div class="apills" id="sniper-targets"></div>
+      <button class="resolve-btn amber" onclick="resolveSniper()">🎯 شلیک!</button>
+    </div>
+
+    <!-- Day panel -->
+    <div class="panel day-panel" id="day-panel">
+      <div class="panel-title">☀️ رای‌گیری روز</div>
+      <div class="sec-title" style="margin-bottom:8px;">کدام بازیکن اعدام شود؟</div>
+      <div class="apills" id="vote-players"></div>
+      <button class="resolve-btn red" onclick="resolveVote()">🗳️ اعدام بازیکن انتخابی</button>
+    </div>
+
+    <!-- Log -->
+    <div class="log-section">
+      <div class="log-title">📋 تاریخچه بازی</div>
+      <div class="log-list" id="log-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ========== ROLES ==========
+const ROLES = {
+  mafia_boss:   {name:'رئیس مافیا',emoji:'👑',team:'mafia',teamLabel:'مافیا',teamClass:'team-mafia',bgClass:'bg-mafia-boss',desc:'رهبر مافیا. هر شب یک هدف را حذف می‌کنی.'},
+  mafia:        {name:'مافیا',emoji:'🔫',team:'mafia',teamLabel:'مافیا',teamClass:'team-mafia',bgClass:'bg-mafia',desc:'عضو مافیا. با رئیس همکاری کن.'},
+  doctor:       {name:'دکتر',emoji:'🩺',team:'citizen',teamLabel:'شهروند',teamClass:'team-citizen',bgClass:'bg-doctor',desc:'هر شب یک نفر (یا خودت) را نجات بده.'},
+  lecter:       {name:'دکتر لکتر',emoji:'🧠',team:'mafia',teamLabel:'مافیا',teamClass:'team-mafia',bgClass:'bg-lecter',desc:'دکتر مافیا. هر شب یک نفر را نجات بده.'},
+  detective:    {name:'کاراگاه',emoji:'🔍',team:'citizen',teamLabel:'شهروند',teamClass:'team-citizen',bgClass:'bg-detective',desc:'هر شب هویت یک نفر را استعلام می‌گیری.'},
+  psychologist: {name:'روانشناس',emoji:'🪄',team:'citizen',teamLabel:'شهروند',teamClass:'team-citizen',bgClass:'bg-psychologist',desc:'هر شب یک نفر را فردا سکوت می‌کنی.'},
+  sniper:       {name:'تک‌تیرانداز',emoji:'🎯',team:'citizen',teamLabel:'شهروند',teamClass:'team-citizen',bgClass:'bg-sniper',desc:'یک گلوله داری. اشتباه بزنی، خودت حذف می‌شوی!'},
+  citizen:      {name:'شهروند',emoji:'👤',team:'citizen',teamLabel:'شهروند',teamClass:'team-citizen',bgClass:'bg-citizen',desc:'مافیا را در رای‌گیری شناسایی کن.'},
+};
+
+// ========== STATE ==========
+let playerCount=7, assignments=[], revealIdx=0, cardFlipped=false;
+let phase='night', round=1;
+let mafiaKill=null, doctorSave=null, lecterSave=null, detectiveCheck=null, psychSilence=null;
+let voteExile=null, sniperShoot=null;
+const logs=[];
+
+// ========== SETUP ==========
+const P = n => n.toString().replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+
+function getRoles(n){
+  let f=['mafia_boss','doctor','lecter','detective','psychologist','sniper'];
+  let rem=n-6;
+  if(rem<0){f=['mafia_boss','doctor','lecter','detective','psychologist'];rem=n-5;}
+  const r=[...f];
+  for(let i=0;i<Math.floor(rem/3);i++) r.push('mafia');
+  for(let i=0;i<rem-Math.floor(rem/3);i++) r.push('citizen');
+  return r;
+}
+
+function setCount(n,btn){
+  playerCount=n;
+  document.querySelectorAll('#count-chips .chip').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderNames(); renderPreview();
+}
+
+function renderNames(){
+  const g=document.getElementById('names-grid'); g.innerHTML='';
+  for(let i=1;i<=playerCount;i++){
+    const d=document.createElement('div'); d.className='nfield';
+    d.innerHTML=`<span class="nnum">${P(i)}</span><input type="text" placeholder="بازیکن ${P(i)}" id="pn-${i}">`;
+    g.appendChild(d);
+  }
+}
+
+function renderPreview(){
+  const dist=getRoles(playerCount), counts={};
+  dist.forEach(r=>counts[r]=(counts[r]||0)+1);
+  document.getElementById('role-preview').innerHTML=`<div class="sec-label" style="margin-top:20px;">توزیع نقش‌ها</div>
+    <div class="rbadge-row">${Object.entries(counts).map(([r,c])=>{
+      const rl=ROLES[r];
+      return `<div class="rbadge">${rl.emoji} ${rl.name} <span style="color:var(--gold);font-weight:700">×${P(c)}</span></div>`;
+    }).join('')}</div>`;
+}
+
+// ========== START ==========
+function startGame(){
+  const players=[];
+  for(let i=1;i<=playerCount;i++){
+    const v=document.getElementById(`pn-${i}`).value.trim();
+    players.push(v||`بازیکن ${P(i)}`);
+  }
+  const roles=shuffle(getRoles(playerCount));
+  assignments=players.map((name,i)=>({name,role:roles[i],alive:true,silenced:false,sniperUsed:false}));
+  revealIdx=0; cardFlipped=false;
+  showScreen('reveal-screen'); loadReveal();
+}
+
+// ========== REVEAL ==========
+function loadReveal(){
+  const a=assignments[revealIdx], rl=ROLES[a.role];
+  document.getElementById('rv-name').textContent=a.name;
+  document.getElementById('pdots').innerHTML=assignments.map((_,i)=>{
+    let c='pdot';
+    if(i<revealIdx)c+=' done'; else if(i===revealIdx)c+=' cur';
+    return `<div class="${c}"></div>`;
+  }).join('');
+  document.getElementById('card-inner').classList.remove('flipped');
+  cardFlipped=false;
+  document.getElementById('tap-hint').style.display='block';
+  document.getElementById('next-btn').classList.remove('show');
+  const cf=document.getElementById('card-front');
+  cf.className=`cface cfront ${rl.bgClass}`;
+  document.getElementById('c-emoji').textContent=rl.emoji;
+  document.getElementById('c-name').textContent=rl.name;
+  const ct=document.getElementById('c-team');
+  ct.textContent=rl.teamLabel; ct.className=`c-team ${rl.teamClass}`;
+  document.getElementById('c-desc').textContent=rl.desc;
+  document.getElementById('next-btn').textContent=revealIdx===assignments.length-1?'شروع بازی ▶':'بازیکن بعدی ←';
+}
+
+function flipCard(){
+  if(cardFlipped) return;
+  cardFlipped=true;
+  document.getElementById('card-inner').classList.add('flipped');
+  document.getElementById('tap-hint').style.display='none';
+  document.getElementById('next-btn').classList.add('show');
+}
+
+function nextReveal(){
+  if(revealIdx===assignments.length-1){ startMainGame(); return; }
+  const ni=revealIdx+1, ov=document.getElementById('pass-ov');
+  document.getElementById('pass-name').textContent=assignments[ni].name;
+  ov.classList.add('show');
+  ov.onclick=()=>{ ov.classList.remove('show'); revealIdx=ni; loadReveal(); };
+}
+
+// ========== MAIN GAME ==========
+function startMainGame(){
+  phase='night'; round=1;
+  resetActions();
+  showScreen('game-screen');
+  updateUI();
+  addLog('بازی شروع شد','log-system');
+  addLog('شب اول فرا رسید','log-night');
+}
+
+function updateUI(){
+  const gs=document.getElementById('game-screen');
+  const pb=document.getElementById('phase-badge');
+  gs.className=`screen active ${phase==='night'?'night-mode':'day-mode'}`;
+  if(phase==='night'){
+    pb.className='phase-badge night'; pb.textContent=`🌙 شب ${P(round)}`;
+    document.getElementById('night-panel').classList.add('show');
+    document.getElementById('day-panel').classList.remove('show');
+    document.getElementById('sniper-panel').classList.remove('show');
+    renderNightActions();
+  } else {
+    pb.className='phase-badge day'; pb.textContent=`☀️ روز ${P(round)}`;
+    document.getElementById('night-panel').classList.remove('show');
+    document.getElementById('day-panel').classList.add('show');
+    const sniperAlive=assignments.find(a=>a.role==='sniper'&&a.alive&&!a.sniperUsed);
+    if(sniperAlive){ document.getElementById('sniper-panel').classList.add('show'); renderSniperTargets(); }
+    else document.getElementById('sniper-panel').classList.remove('show');
+    renderVotePlayers();
+  }
+  document.getElementById('round-info').textContent=`دور ${P(round)}`;
+  renderGrid();
+}
+
+function renderGrid(){
+  document.getElementById('players-grid').innerHTML=assignments.map((a,i)=>{
+    const rl=ROLES[a.role];
+    let cls='pcard'; if(!a.alive)cls+=' dead'; if(a.silenced)cls+=' silenced';
+    const pills=[];
+    if(!a.alive) pills.push(`<span class="sp sp-dead">حذف</span>`);
+    if(a.silenced) pills.push(`<span class="sp sp-silent">سکوت</span>`);
+    if(a.role==='sniper'&&a.sniperUsed) pills.push(`<span class="sp sp-sniper">شلیک کرده</span>`);
+    return `<div class="${cls}">
+      <div class="pcard-name">${a.name}</div>
+      <div class="pcard-role">${rl.emoji} ${rl.name}</div>
+      ${pills.length?`<div class="pcard-status">${pills.join('')}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ========== NIGHT ==========
+function resetActions(){
+  mafiaKill=null; doctorSave=null; lecterSave=null;
+  detectiveCheck=null; psychSilence=null; voteExile=null; sniperShoot=null;
+  assignments.forEach(a=>{ a.silenced=false; });
+}
+
+function renderNightActions(){
+  const alive=assignments.filter(a=>a.alive);
+  renderPills('mafia-targets',alive,'kill');
+  const has=r=>assignments.some(a=>a.alive&&a.role===r);
+  document.getElementById('doctor-block').style.display=has('doctor')?'block':'none';
+  document.getElementById('lecter-block').style.display=has('lecter')?'block':'none';
+  document.getElementById('detective-block').style.display=has('detective')?'block':'none';
+  document.getElementById('psych-block').style.display=has('psychologist')?'block':'none';
+  if(has('doctor')) renderPills('doctor-targets',alive,'save-doc');
+  if(has('lecter')) renderPills('lecter-targets',alive,'save-lec');
+  if(has('detective')) renderPills('detective-targets',alive,'check');
+  if(has('psychologist')) renderPills('psych-targets',alive,'silence');
+}
+
+function renderPills(cid, players, type){
+  const c=document.getElementById(cid); if(!c) return;
+  c.innerHTML=players.map(a=>{
+    const idx=assignments.indexOf(a);
+    let cls='apill';
+    if(type==='kill'&&mafiaKill===idx) cls+=' sel-kill';
+    if(type==='save-doc'&&doctorSave===idx) cls+=' sel-save';
+    if(type==='save-lec'&&lecterSave===idx) cls+=' sel-save';
+    if(type==='check'&&detectiveCheck===idx) cls+=' sel-check';
+    if(type==='silence'&&psychSilence===idx) cls+=' sel-silence';
+    return `<button class="${cls}" onclick="sel('${type}',${idx})">${a.name}</button>`;
+  }).join('');
+}
+
+function sel(type,idx){
+  if(type==='kill') mafiaKill=(mafiaKill===idx?null:idx);
+  else if(type==='save-doc') doctorSave=(doctorSave===idx?null:idx);
+  else if(type==='save-lec') lecterSave=(lecterSave===idx?null:idx);
+  else if(type==='check') detectiveCheck=(detectiveCheck===idx?null:idx);
+  else if(type==='silence') psychSilence=(psychSilence===idx?null:idx);
+  renderNightActions();
+}
+
+function resolveNight(){
+  const report=[];
+
+  // Detective
+  if(detectiveCheck!==null){
+    const t=assignments[detectiveCheck];
+    const isMafia=t.role==='mafia_boss'||t.role==='mafia'||t.role==='lecter';
+    showCheckPopup(t.name,isMafia);
+    addLog(`کاراگاه ${t.name} را بررسی کرد — ${isMafia?'🔴 مافیا':'🟢 شهروند'}`,'log-info');
+  }
+
+  // Psychologist silence
+  if(psychSilence!==null){
+    assignments[psychSilence].silenced=true;
+    report.push({type:'silent',text:`${assignments[psychSilence].name} فردا سکوت است`,icon:'🪄'});
+    addLog(`${assignments[psychSilence].name} فردا سکوت خواهد بود`,'log-info');
+  }
+
+  // Kill/save
+  if(mafiaKill!==null){
+    const t=assignments[mafiaKill];
+    const saved=doctorSave===mafiaKill||lecterSave===mafiaKill;
+    if(saved){
+      const saver=doctorSave===mafiaKill?'دکتر':'دکتر لکتر';
+      addLog(`${t.name} هدف مافیا بود اما توسط ${saver} نجات یافت`,'log-save');
+      report.push({type:'saved',text:`${t.name} نجات یافت (${saver})`,icon:'🩺'});
+    } else {
+      t.alive=false;
+      addLog(`${t.name} در شب از بازی خارج شد`,'log-death');
+      report.push({type:'death',text:`${t.name} در شب کشته شد`,icon:'💀'});
+    }
+  } else {
+    report.push({type:'none',text:'این شب کسی کشته نشد',icon:'😶'});
+    addLog('شب بدون قربانی گذشت','log-night');
+  }
+
+  document.getElementById('report-items').innerHTML=report.map(r=>`<div class="ri ${r.type}"><span class="ri-icon">${r.icon}</span>${r.text}</div>`).join('');
+  document.getElementById('report-modal').classList.add('show');
+  checkWin();
+}
+
+function closeReport(){
+  document.getElementById('report-modal').classList.remove('show');
+  phase='day'; round++;
+  resetActions();
+  updateUI();
+  addLog(`روز ${P(round)} شروع شد`,'log-day');
+}
+
+// ========== DAY ==========
+function renderVotePlayers(){
+  const alive=assignments.filter(a=>a.alive);
+  document.getElementById('vote-players').innerHTML=alive.map(a=>{
+    const idx=assignments.indexOf(a);
+    let cls='apill'; if(voteExile===idx) cls+=' sel-vote';
+    return `<button class="${cls}" onclick="selVote(${idx})">${a.name}</button>`;
+  }).join('');
+}
+
+function selVote(idx){ voteExile=(voteExile===idx?null:idx); renderVotePlayers(); }
+
+function resolveVote(){
+  if(voteExile===null){ alert('ابتدا یک بازیکن انتخاب کنید'); return; }
+  const t=assignments[voteExile], rl=ROLES[t.role];
+  t.alive=false;
+  addLog(`${t.name} (${rl.name}) توسط رای مردم اعدام شد`,'log-death');
+  voteExile=null;
+  if(!checkWin()){
+    phase='night'; resetActions(); updateUI();
+    addLog(`شب ${P(round)} فرا رسید`,'log-night');
+  }
+}
+
+// ========== SNIPER ==========
+function renderSniperTargets(){
+  const alive=assignments.filter(a=>a.alive);
+  document.getElementById('sniper-targets').innerHTML=alive.map(a=>{
+    const idx=assignments.indexOf(a);
+    let cls='apill'; if(sniperShoot===idx) cls+=' sel-sniper';
+    return `<button class="${cls}" onclick="selSniper(${idx})">${a.name}</button>`;
+  }).join('');
+}
+
+function selSniper(idx){ sniperShoot=(sniperShoot===idx?null:idx); renderSniperTargets(); }
+
+function resolveSniper(){
+  if(sniperShoot===null){ alert('ابتدا یک هدف انتخاب کنید'); return; }
+  const sniperIdx=assignments.findIndex(a=>a.role==='sniper'&&a.alive);
+  if(sniperIdx===-1) return;
+  assignments[sniperIdx].sniperUsed=true;
+  const t=assignments[sniperShoot];
+  const isMafia=t.role==='mafia_boss'||t.role==='mafia'||t.role==='lecter';
+  if(isMafia){
+    t.alive=false;
+    addLog(`🎯 تک‌تیرانداز شلیک کرد — ${t.name} (مافیا) از بازی خارج شد!`,'log-death');
+  } else {
+    assignments[sniperIdx].alive=false;
+    addLog(`🎯 تک‌تیرانداز اشتباه شلیک کرد و خودش از بازی خارج شد!`,'log-death');
+  }
+  sniperShoot=null;
+  checkWin();
+  renderGrid();
+  document.getElementById('sniper-panel').classList.remove('show');
+}
+
+// ========== WIN CHECK ==========
+function checkWin(){
+  const aM=assignments.filter(a=>a.alive&&(a.role==='mafia_boss'||a.role==='mafia'));
+  const aL=assignments.filter(a=>a.alive&&a.role==='lecter');
+  const aC=assignments.filter(a=>a.alive&&a.role!=='mafia_boss'&&a.role!=='mafia'&&a.role!=='lecter');
+  const totalMafia=aM.length+aL.length;
+  if(totalMafia===0){ setTimeout(()=>showEnd('citizen'),400); return true; }
+  if(totalMafia>=aC.length){ setTimeout(()=>showEnd('mafia'),400); return true; }
+  renderGrid(); return false;
+}
+
+function showEnd(winner){
+  document.getElementById('end-rows').innerHTML=assignments.map(a=>{
+    const rl=ROLES[a.role];
+    return `<div class="rrow"><div class="rrow-left"><div class="rrow-emoji">${rl.emoji}</div>
+      <div><div class="rrow-name">${a.name}</div><div class="rrow-role-txt">${rl.name}</div></div></div>
+      <div class="rrow-team ${rl.teamClass}">${rl.teamLabel}</div></div>`;
+  }).join('');
+  if(winner==='mafia'){
+    document.getElementById('end-icon').textContent='💀';
+    document.getElementById('end-title').textContent='مافیا برنده شد!';
+    document.getElementById('end-sub').textContent='شهروندان نتوانستند مافیا را شناسایی کنند.';
+  } else {
+    document.getElementById('end-icon').textContent='🏆';
+    document.getElementById('end-title').textContent='شهروندان بردند!';
+    document.getElementById('end-sub').textContent='تمام مافیا شناسایی و حذف شدند. شهروندان پیروز شدند!';
+  }
+  document.getElementById('end-modal').classList.add('show');
+}
+
+function forceEnd(){ showEnd('none'); document.getElementById('end-title').textContent='پایان بازی'; document.getElementById('end-sub').textContent='بازی توسط گرداننده پایان یافت.'; document.getElementById('end-icon').textContent='🎭'; }
+
+// ========== HELPERS ==========
+function togglePhase(){
+  if(phase==='night'){ phase='day'; round++; resetActions(); addLog(`روز ${P(round)} شروع شد`,'log-day'); }
+  else { phase='night'; resetActions(); addLog(`شب ${P(round)} فرا رسید`,'log-night'); }
+  updateUI();
+}
+
+function addLog(text,cls){
+  logs.unshift({text,cls});
+  const el=document.getElementById('log-list');
+  if(el) el.innerHTML=logs.slice(0,40).map(l=>`<div class="log-item ${l.cls}">${l.text}</div>`).join('');
+}
+
+function showCheckPopup(name,isMafia){
+  const p=document.getElementById('check-popup');
+  p.className=`check-popup ${isMafia?'mafia-r':'citizen-r'}`;
+  p.textContent=`${name}: ${isMafia?'🔴 مافیا است!':'🟢 شهروند است'}`;
+  p.style.display='block';
+  setTimeout(()=>p.style.display='none',4500);
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+renderNames(); renderPreview();
+</script>
+</body>
+</html>
