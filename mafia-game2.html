@@ -486,18 +486,23 @@ function resolveNight(){
   }
 
   if(snipeTarget!==undefined){
-    const snipeVictim=gs.players.find(p=>p.id===snipeTarget);
-    if(snipeVictim&&snipeVictim.alive){
-      if(ROLES[snipeVictim.role].team==='mafia'){
-        // هدف مافیاست → مافیا کشته می‌شود
-        if(!killed.includes(snipeTarget)) killed.push(snipeTarget);
-        addMsg('سیستم','🎯 تک‌تیرانداز یک مافیا را هدف گرفت!','system');
-      } else {
-        // هدف پلیس است → تک‌تیرانداز خودش کشته می‌شود
-        const sniper=gs.players.find(p=>p.role==='sniper'&&p.alive);
-        if(sniper&&!killed.includes(sniper.id)){
-          killed.push(sniper.id);
-          addMsg('سیستم','🎯 تک‌تیرانداز به پلیس شلیک کرد — خودش کشته شد!','system');
+    // اگر تک‌تیرانداز همین شب توسط مافیا کشته شده → شلیک انجام نمی‌شود
+    const sniper=gs.players.find(p=>p.role==='sniper');
+    if(sniper && killed.includes(sniper.id)){
+      addMsg('سیستم','🎯 تک‌تیرانداز این شب کشته شد — شلیک انجام نشد!','system');
+    } else {
+      const snipeVictim=gs.players.find(p=>p.id===snipeTarget);
+      if(snipeVictim&&snipeVictim.alive){
+        if(ROLES[snipeVictim.role].team==='mafia'){
+          // هدف مافیاست → مافیا کشته می‌شود
+          if(!killed.includes(snipeTarget)) killed.push(snipeTarget);
+          addMsg('سیستم','🎯 تک‌تیرانداز یک مافیا را هدف گرفت!','system');
+        } else {
+          // هدف پلیس است → تک‌تیرانداز خودش کشته می‌شود
+          if(sniper&&!killed.includes(sniper.id)){
+            killed.push(sniper.id);
+            addMsg('سیستم','🎯 تک‌تیرانداز به پلیس شلیک کرد — خودش کشته شد!','system');
+          }
         }
       }
     }
@@ -557,13 +562,18 @@ function resolveDay(){
   Object.values(gs.votes).forEach(id=>{counts[id]=(counts[id]||0)+1;});
   let maxV=0,executed=null;
   for(const [id,c] of Object.entries(counts)){if(c>maxV){maxV=c;executed=parseInt(id);}}
-  if(executed!==null){
+  // چک کن آیا چند نفر رأی مساوی دارند
+  const topCount=Object.values(counts).filter(c=>c===maxV).length;
+  if(topCount>1){
+    // رأی مساوی → کسی کشته نمی‌شود
+    addMsg('سیستم','⚖️ رأی‌ها مساوی شد — امروز کسی اعدام نمی‌شود!','system');
+  } else if(executed!==null){
     const p=gs.players.find(pl=>pl.id===executed);
     if(p&&p.alive){
       p.alive=false;
       addMsg(null,`⚖️ ${p.name} (${ROLES[p.role].name} ${ROLES[p.role].icon}) با ${maxV} رأی اعدام شد!`,'dead-announce');
       if(p.isHuman) killHuman();
-      renderPlayers(); // بلافاصله نقش نمایش داده شود
+      renderPlayers();
     }
   }
   renderPlayers();
@@ -575,6 +585,9 @@ function killHuman(){
   document.getElementById('chatInput').placeholder='☠️ کشته شدی';
   document.getElementById('sendBtn').disabled=true;
   document.getElementById('micBtn').disabled=true;
+  // پنل اقدامات شبانه و روزانه مخفی شود
+  document.getElementById('nightActionsDiv').style.display='none';
+  document.getElementById('dayActionsDiv').style.display='none';
   // نمایش نقش همه بازیکنان برای بازیکن مرده
   const grid=document.getElementById('deadRolesGrid');
   grid.innerHTML='';
