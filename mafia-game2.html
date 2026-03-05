@@ -493,10 +493,11 @@ function resolveNight(){
     } else {
       const snipeVictim=gs.players.find(p=>p.id===snipeTarget);
       if(snipeVictim&&snipeVictim.alive){
-        if(ROLES[snipeVictim.role].team==='mafia'){
-          // هدف مافیاست → مافیا کشته می‌شود
+        if(ROLES[snipeVictim.role].team==='mafia'||snipeVictim.role==='boss'){
+          // هدف مافیا یا رئیس مافیاست → کشته می‌شود
           if(!killed.includes(snipeTarget)) killed.push(snipeTarget);
-          addMsg('سیستم','🎯 تک‌تیرانداز یک مافیا را هدف گرفت!','system');
+          const label=snipeVictim.role==='boss'?'رئیس مافیا':'مافیا';
+          addMsg('سیستم',`🎯 تک‌تیرانداز ${label} را هدف گرفت و کشت!`,'system');
         } else {
           // هدف پلیس است → تک‌تیرانداز خودش کشته می‌شود
           if(sniper&&!killed.includes(sniper.id)){
