@@ -4,780 +4,135 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>بازی جاسوس</title>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" 
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
   <link rel="stylesheet" href="css/style.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" 
-rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
+
 <style>
   :root {
-    --bg: #0d1117;
-    --surface: #161b22;
-    --surface2: #1c2230;
-    --border: rgba(99,179,237,0.15);
-    --accent: #3b82f6;
-    --accent2: #60a5fa;
-    --spy: #ef4444;
-    --spy2: #f87171;
-    --green: #22c55e;
-    --gold: #f59e0b;
-    --text: #e2e8f0;
-    --muted: #64748b;
-    --cyan: #06b6d4;
+    --bg: #0d1117; --surface: #161b22; --border: rgba(99,179,237,0.15);
+    --accent: #3b82f6; --accent2: #60a5fa; --spy: #ef4444; --spy2: #f87171;
+    --text: #e2e8f0; --muted: #64748b; --cyan: #06b6d4;
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'Vazirmatn', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Scanline effect */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.03) 2px,
-      rgba(0,0,0,0.03) 4px
-    );
-    pointer-events: none;
-    z-index: 9999;
-  }
-
+  body { font-family: 'Vazirmatn', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  body::after { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; z-index: 9999; }
   .screen { display: none; }
   .screen.active { display: flex; flex-direction: column; min-height: 100vh; animation: fadeUp 0.4s ease; }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ====== SETUP ====== */
-  #setup-screen {
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    background:
-      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(59,130,246,0.15) 0%, transparent 60%),
-      var(--bg);
-  }
-
-  .hero {
-    text-align: center;
-    margin-bottom: 44px;
-  }
-
-  .hero-icon {
-    font-size: 72px;
-    display: block;
-    filter: drop-shadow(0 0 24px rgba(59,130,246,0.6));
-    animation: float 4s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-
-  .hero-title {
-    font-size: 48px;
-    font-weight: 900;
-    letter-spacing: 8px;
-    background: linear-gradient(135deg, var(--cyan), var(--accent2), #a78bfa);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-top: 12px;
-  }
-
-  .hero-sub {
-    color: var(--muted);
-    font-size: 12px;
-    letter-spacing: 4px;
-    margin-top: 8px;
-    text-transform: uppercase;
-  }
-
-  .setup-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 36px;
-    width: 100%;
-    max-width: 540px;
-    box-shadow: 0 0 60px rgba(59,130,246,0.05), 0 20px 40px rgba(0,0,0,0.4);
-  }
-
-  .section-label {
-    font-size: 11px;
-    color: var(--cyan);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .section-label::before {
-    content: '';
-    width: 20px;
-    height: 1px;
-    background: var(--cyan);
-  }
-
-  .count-selector {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 28px;
-  }
-
-  .count-btn {
-    background: transparent;
-    border: 1px solid rgba(99,179,237,0.2);
-    color: var(--muted);
-    padding: 8px 18px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: 'Vazirmatn', sans-serif;
-    font-size: 14px;
-    transition: all 0.2s;
-  }
-
-  .count-btn:hover, .count-btn.active {
-    border-color: var(--accent);
-    color: var(--accent2);
-    background: rgba(59,130,246,0.1);
-    box-shadow: 0 0 12px rgba(59,130,246,0.2);
-  }
-
-  #names-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 24px;
-  }
-
-  .name-field {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 10px;
-    padding: 8px 12px;
-    transition: border-color 0.2s;
-  }
-
-  .name-field:focus-within {
-    border-color: rgba(59,130,246,0.4);
-  }
-
-  .name-num {
-    font-size: 11px;
-    color: var(--muted);
-    min-width: 18px;
-  }
-
-  .name-field input {
-    background: transparent;
-    border: none;
-    color: var(--text);
-    font-family: 'Vazirmatn', sans-serif;
-    font-size: 13px;
-    outline: none;
-    width: 100%;
-  }
-
-  /* Spy count */
-  .spy-count-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(239,68,68,0.06);
-    border: 1px solid rgba(239,68,68,0.2);
-    border-radius: 10px;
-    padding: 12px 16px;
-    margin-bottom: 24px;
-  }
-
-  .spy-count-label {
-    font-size: 14px;
-    color: var(--spy2);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .spy-counter {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .spy-counter button {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: 1px solid rgba(239,68,68,0.4);
-    background: transparent;
-    color: var(--spy2);
-    font-size: 18px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    font-family: 'Vazirmatn', sans-serif;
-  }
-
-  .spy-counter button:hover {
-    background: rgba(239,68,68,0.15);
-  }
-
-  .spy-count-num {
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--spy);
-    min-width: 24px;
-    text-align: center;
-  }
-
-  /* Location categories */
-  .category-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 28px;
-  }
-
-  .cat-btn {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: var(--muted);
-    padding: 6px 14px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-family: 'Vazirmatn', sans-serif;
-    font-size: 12px;
-    transition: all 0.2s;
-  }
-
-  .cat-btn.active {
-    background: rgba(59,130,246,0.12);
-    border-color: var(--accent);
-    color: var(--accent2);
-  }
-
-  .start-btn {
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
-    border: none;
-    border-radius: 12px;
-    color: white;
-    font-family: 'Vazirmatn', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    letter-spacing: 2px;
-    transition: all 0.3s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .start-btn::before {
-    content: '';
-    position: absolute;
-    top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-    transition: left 0.5s;
-  }
-
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  #setup-screen { align-items: center; justify-content: center; padding: 40px 20px; background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(59,130,246,0.15) 0%, transparent 60%), var(--bg); }
+  .hero { text-align: center; margin-bottom: 44px; }
+  .hero-icon { font-size: 72px; display: block; filter: drop-shadow(0 0 24px rgba(59,130,246,0.6)); animation: float 4s ease-in-out infinite; }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  .hero-title { font-size: 48px; font-weight: 900; letter-spacing: 8px; background: linear-gradient(135deg, var(--cyan), var(--accent2), #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-top: 12px; }
+  .hero-sub { color: var(--muted); font-size: 12px; letter-spacing: 4px; margin-top: 8px; text-transform: uppercase; }
+  .setup-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 36px; width: 100%; max-width: 540px; box-shadow: 0 0 60px rgba(59,130,246,0.05), 0 20px 40px rgba(0,0,0,0.4); }
+  .section-label { font-size: 11px; color: var(--cyan); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .section-label::before { content: ''; width: 20px; height: 1px; background: var(--cyan); }
+  .count-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+  .count-btn { background: transparent; border: 1px solid rgba(99,179,237,0.2); color: var(--muted); padding: 8px 18px; border-radius: 8px; cursor: pointer; font-family: 'Vazirmatn', sans-serif; font-size: 14px; transition: all 0.2s; }
+  .count-btn:hover, .count-btn.active { border-color: var(--accent); color: var(--accent2); background: rgba(59,130,246,0.1); box-shadow: 0 0 12px rgba(59,130,246,0.2); }
+  #names-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 24px; }
+  .name-field { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 8px 12px; transition: border-color 0.2s; }
+  .name-field:focus-within { border-color: rgba(59,130,246,0.4); }
+  .name-num { font-size: 11px; color: var(--muted); min-width: 18px; }
+  .name-field input { background: transparent; border: none; color: var(--text); font-family: 'Vazirmatn', sans-serif; font-size: 13px; outline: none; width: 100%; }
+  .spy-count-row { display: flex; align-items: center; justify-content: space-between; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 12px 16px; margin-bottom: 24px; }
+  .spy-count-label { font-size: 14px; color: var(--spy2); display: flex; align-items: center; gap: 8px; }
+  .spy-counter { display: flex; align-items: center; gap: 12px; }
+  .spy-counter button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(239,68,68,0.4); background: transparent; color: var(--spy2); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-family: 'Vazirmatn', sans-serif; }
+  .spy-counter button:hover { background: rgba(239,68,68,0.15); }
+  .spy-count-num { font-size: 22px; font-weight: 700; color: var(--spy); min-width: 24px; text-align: center; }
+  .category-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+  .cat-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: var(--muted); padding: 6px 14px; border-radius: 20px; cursor: pointer; font-family: 'Vazirmatn', sans-serif; font-size: 12px; transition: all 0.2s; }
+  .cat-btn.active { background: rgba(59,130,246,0.12); border-color: var(--accent); color: var(--accent2); }
+  .start-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #1d4ed8, #3b82f6); border: none; border-radius: 12px; color: white; font-family: 'Vazirmatn', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; letter-spacing: 2px; transition: all 0.3s; position: relative; overflow: hidden; }
+  .start-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); transition: left 0.5s; }
   .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(59,130,246,0.4); }
   .start-btn:hover::before { left: 100%; }
-
-  /* ====== REVEAL SCREEN ====== */
-  #reveal-screen {
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    background: var(--bg);
-  }
-
-  .reveal-wrap {
-    width: 100%;
-    max-width: 440px;
-    text-align: center;
-  }
-
-  .reveal-header {
-    margin-bottom: 28px;
-  }
-
-  .turn-label {
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 3px;
-    margin-bottom: 6px;
-  }
-
-  .turn-name {
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--accent2);
-  }
-
-  .pdots {
-    display: flex;
-    justify-content: center;
-    gap: 5px;
-    margin-top: 14px;
-  }
-
-  .pdot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.08);
-    transition: all 0.3s;
-  }
-
+  #reveal-screen { align-items: center; justify-content: center; padding: 40px 20px; background: var(--bg); }
+  .reveal-wrap { width: 100%; max-width: 440px; text-align: center; }
+  .reveal-header { margin-bottom: 28px; }
+  .turn-label { font-size: 11px; color: var(--muted); letter-spacing: 3px; margin-bottom: 6px; }
+  .turn-name { font-size: 26px; font-weight: 700; color: var(--accent2); }
+  .pdots { display: flex; justify-content: center; gap: 5px; margin-top: 14px; flex-wrap: wrap; }
+  .pdot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.08); transition: all 0.3s; }
   .pdot.done { background: var(--accent); }
   .pdot.cur { background: var(--cyan); transform: scale(1.4); box-shadow: 0 0 8px var(--cyan); }
-
-  /* Card */
-  .card-wrap {
-    perspective: 1000px;
-    width: 260px;
-    height: 340px;
-    margin: 0 auto 24px;
-    cursor: pointer;
-  }
-
-  .card-inner {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
-  }
-
+  .card-wrap { perspective: 1000px; width: 260px; height: 340px; margin: 0 auto 24px; cursor: pointer; }
+  .card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4,0,0.2,1); }
   .card-inner.flipped { transform: rotateY(180deg); }
-
-  .cface {
-    position: absolute;
-    inset: 0;
-    border-radius: 18px;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    overflow: hidden;
-  }
-
-  .cback {
-    background:
-      repeating-linear-gradient(
-        -45deg,
-        rgba(59,130,246,0.05) 0px,
-        rgba(59,130,246,0.05) 1px,
-        transparent 1px,
-        transparent 8px
-      ),
-      var(--surface);
-    border: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-  }
-
+  .cface { position: absolute; inset: 0; border-radius: 18px; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; }
+  .cback { background: repeating-linear-gradient(-45deg, rgba(59,130,246,0.05) 0px, rgba(59,130,246,0.05) 1px, transparent 1px, transparent 8px), var(--surface); border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
   .cback-icon { font-size: 56px; }
   .cback-txt { font-size: 12px; color: var(--muted); letter-spacing: 2px; }
-
-  .cfront {
-    transform: rotateY(180deg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 28px 20px;
-    border: 1px solid;
-    gap: 10px;
-  }
-
-  .cfront.spy-card {
-    background: linear-gradient(160deg, #1a0505, #2d0808, #0d0303);
-    border-color: rgba(239,68,68,0.4);
-    box-shadow: inset 0 0 40px rgba(239,68,68,0.1);
-  }
-
-  .cfront.citizen-card {
-    background: linear-gradient(160deg, #050f1a, #081828, #030d14);
-    border-color: rgba(59,130,246,0.4);
-    box-shadow: inset 0 0 40px rgba(59,130,246,0.08);
-  }
-
+  .cfront { transform: rotateY(180deg); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px 20px; border: 1px solid; gap: 10px; }
+  .cfront.spy-card { background: linear-gradient(160deg, #1a0505, #2d0808, #0d0303); border-color: rgba(239,68,68,0.4); box-shadow: inset 0 0 40px rgba(239,68,68,0.1); }
+  .cfront.citizen-card { background: linear-gradient(160deg, #050f1a, #081828, #030d14); border-color: rgba(59,130,246,0.4); box-shadow: inset 0 0 40px rgba(59,130,246,0.08); }
   .card-role-icon { font-size: 64px; }
-
-  .card-role-name {
-    font-size: 22px;
-    font-weight: 900;
-    letter-spacing: 2px;
-  }
-
+  .card-role-name { font-size: 22px; font-weight: 900; letter-spacing: 2px; }
   .spy-card .card-role-name { color: var(--spy2); }
   .citizen-card .card-role-name { color: var(--accent2); }
-
-  .card-location {
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--text);
-    margin-top: 4px;
-  }
-
-  .card-location-label {
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 2px;
-  }
-
-  .card-desc {
-    font-size: 12px;
-    color: rgba(226,232,240,0.5);
-    line-height: 1.8;
-    text-align: center;
-    margin-top: 4px;
-  }
-
-  .spy-badge {
-    background: rgba(239,68,68,0.15);
-    border: 1px solid rgba(239,68,68,0.3);
-    color: var(--spy2);
-    font-size: 11px;
-    padding: 3px 12px;
-    border-radius: 20px;
-    letter-spacing: 2px;
-  }
-
-  .tap-hint {
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 1px;
-    animation: blink 2s ease-in-out infinite;
-    margin-bottom: 16px;
-  }
-
-  @keyframes blink {
-    0%,100%{opacity:1} 50%{opacity:0.2}
-  }
-
-  .next-btn {
-    padding: 12px 40px;
-    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
-    border: none;
-    border-radius: 10px;
-    color: white;
-    font-family: 'Vazirmatn', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: none;
-  }
-
+  .card-location { font-size: 26px; font-weight: 700; color: var(--text); margin-top: 4px; }
+  .card-location-label { font-size: 11px; color: var(--muted); letter-spacing: 2px; }
+  .card-desc { font-size: 12px; color: rgba(226,232,240,0.5); line-height: 1.8; text-align: center; margin-top: 4px; }
+  .spy-badge { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: var(--spy2); font-size: 11px; padding: 3px 12px; border-radius: 20px; letter-spacing: 2px; }
+  .tap-hint { font-size: 12px; color: var(--muted); letter-spacing: 1px; animation: blink 2s ease-in-out infinite; margin-bottom: 16px; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  .next-btn { padding: 12px 40px; background: linear-gradient(135deg, #1d4ed8, #3b82f6); border: none; border-radius: 10px; color: white; font-family: 'Vazirmatn', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: none; }
   .next-btn.show { display: inline-block; }
   .next-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
-
-  /* ====== GAME SCREEN ====== */
-  #game-screen {
-    align-items: center;
-    justify-content: flex-start;
-    padding: 30px 20px;
-    background:
-      radial-gradient(ellipse 60% 30% at 50% 100%, rgba(239,68,68,0.08) 0%, transparent 60%),
-      var(--bg);
-    gap: 20px;
-  }
-
-  .game-header {
-    width: 100%;
-    max-width: 600px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .game-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--accent2);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .timer-box {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 10px 20px;
-  }
-
+  #game-screen { align-items: center; justify-content: flex-start; padding: 30px 20px; background: radial-gradient(ellipse 60% 30% at 50% 100%, rgba(239,68,68,0.08) 0%, transparent 60%), var(--bg); gap: 20px; }
+  .game-header { width: 100%; max-width: 600px; display: flex; align-items: center; justify-content: space-between; }
+  .game-title { font-size: 18px; font-weight: 700; color: var(--accent2); display: flex; align-items: center; gap: 8px; }
+  .timer-box { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 20px; }
   .timer-label { font-size: 12px; color: var(--muted); }
-  .timer-val {
-    font-size: 28px;
-    font-weight: 900;
-    color: var(--cyan);
-    font-variant-numeric: tabular-nums;
-    min-width: 64px;
-    text-align: center;
-    transition: color 0.3s;
-  }
-
+  .timer-val { font-size: 28px; font-weight: 900; color: var(--cyan); font-variant-numeric: tabular-nums; min-width: 64px; text-align: center; transition: color 0.3s; }
   .timer-val.danger { color: var(--spy); animation: timerPulse 0.5s ease infinite; }
-
-  @keyframes timerPulse {
-    0%,100% { opacity:1 } 50% { opacity:0.4 }
-  }
-
-  .timer-btn {
-    background: rgba(6,182,212,0.1);
-    border: 1px solid rgba(6,182,212,0.3);
-    border-radius: 8px;
-    color: var(--cyan);
-    font-family: 'Vazirmatn', sans-serif;
-    font-size: 13px;
-    padding: 6px 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
+  @keyframes timerPulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
+  .timer-btn { background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.3); border-radius: 8px; color: var(--cyan); font-family: 'Vazirmatn', sans-serif; font-size: 13px; padding: 6px 14px; cursor: pointer; transition: all 0.2s; }
   .timer-btn:hover { background: rgba(6,182,212,0.2); }
-
-  /* Players status */
-  .players-panel {
-    width: 100%;
-    max-width: 600px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 20px;
-  }
-
-  .panel-title {
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 3px;
-    margin-bottom: 14px;
-  }
-
-  .players-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .player-chip {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 10px;
-    padding: 10px 14px;
-    transition: all 0.2s;
-    cursor: pointer;
-  }
-
+  .players-panel { width: 100%; max-width: 600px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+  .panel-title { font-size: 12px; color: var(--muted); letter-spacing: 3px; margin-bottom: 14px; }
+  .players-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .player-chip { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 10px 14px; transition: all 0.2s; cursor: pointer; }
   .player-chip:hover { border-color: rgba(239,68,68,0.3); }
-  .player-chip.eliminated {
-    opacity: 0.4;
-    text-decoration: line-through;
-    background: rgba(239,68,68,0.05);
-    border-color: rgba(239,68,68,0.2);
-  }
-
+  .player-chip.eliminated { opacity: 0.4; text-decoration: line-through; background: rgba(239,68,68,0.05); border-color: rgba(239,68,68,0.2); }
   .player-chip-name { font-size: 14px; }
   .elim-x { color: var(--spy); font-size: 16px; display: none; }
   .player-chip.eliminated .elim-x { display: block; }
-
-  /* Voting area */
-  .vote-section {
-    width: 100%;
-    max-width: 600px;
-  }
-
-  .vote-title {
-    font-size: 14px;
-    color: var(--muted);
-    margin-bottom: 12px;
-    letter-spacing: 1px;
-  }
-
-  .action-btns {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .btn-reveal-spy {
-    flex: 1;
-    padding: 14px;
-    background: linear-gradient(135deg, #7f1d1d, #dc2626);
-    border: none;
-    border-radius: 10px;
-    color: white;
-    font-family: 'Vazirmatn', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
+  .vote-section { width: 100%; max-width: 600px; }
+  .vote-title { font-size: 14px; color: var(--muted); margin-bottom: 12px; letter-spacing: 1px; }
+  .action-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-reveal-spy { flex: 1; padding: 14px; background: linear-gradient(135deg, #7f1d1d, #dc2626); border: none; border-radius: 10px; color: white; font-family: 'Vazirmatn', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
   .btn-reveal-spy:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,0.4); }
-
-  .btn-new-game {
-    flex: 1;
-    padding: 14px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--muted);
-    font-family: 'Vazirmatn', sans-serif;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
+  .btn-new-game { flex: 1; padding: 14px; background: transparent; border: 1px solid var(--border); border-radius: 10px; color: var(--muted); font-family: 'Vazirmatn', sans-serif; font-size: 14px; cursor: pointer; transition: all 0.2s; }
   .btn-new-game:hover { border-color: var(--accent); color: var(--accent2); }
-
-  /* ====== RESULT SCREEN ====== */
-  #result-screen {
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    background: var(--bg);
-  }
-
-  .result-box {
-    width: 100%;
-    max-width: 480px;
-    text-align: center;
-  }
-
+  #result-screen { align-items: center; justify-content: center; padding: 40px 20px; background: var(--bg); }
+  .result-box { width: 100%; max-width: 480px; text-align: center; }
   .result-icon { font-size: 80px; margin-bottom: 16px; }
-
-  .result-title {
-    font-size: 32px;
-    font-weight: 900;
-    margin-bottom: 8px;
-  }
-
-  .result-sub {
-    color: var(--muted);
-    font-size: 14px;
-    margin-bottom: 32px;
-    line-height: 1.8;
-  }
-
-  .reveal-list {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 24px;
-    text-align: right;
-  }
-
-  .reveal-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-  }
-
+  .result-title { font-size: 32px; font-weight: 900; margin-bottom: 8px; }
+  .result-sub { color: var(--muted); font-size: 14px; margin-bottom: 32px; line-height: 1.8; white-space: pre-line; }
+  .reveal-list { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 24px; text-align: right; }
+  .reveal-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
   .reveal-row:last-child { border-bottom: none; }
-
   .reveal-name { font-size: 15px; font-weight: 600; }
-  .reveal-role-badge {
-    font-size: 12px;
-    padding: 3px 12px;
-    border-radius: 20px;
-  }
-
+  .reveal-role-badge { font-size: 12px; padding: 3px 12px; border-radius: 20px; }
   .badge-spy { background: rgba(239,68,68,0.15); color: var(--spy2); border: 1px solid rgba(239,68,68,0.3); }
   .badge-citizen { background: rgba(59,130,246,0.1); color: var(--accent2); border: 1px solid rgba(59,130,246,0.2); }
-
-  .location-reveal {
-    background: rgba(6,182,212,0.08);
-    border: 1px solid rgba(6,182,212,0.2);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
+  .location-reveal { background: rgba(6,182,212,0.08); border: 1px solid rgba(6,182,212,0.2); border-radius: 12px; padding: 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
   .loc-icon { font-size: 36px; }
   .loc-info { text-align: right; }
   .loc-label { font-size: 11px; color: var(--muted); letter-spacing: 2px; }
   .loc-name { font-size: 22px; font-weight: 700; color: var(--cyan); }
-
-  .play-again-btn {
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
-    border: none;
-    border-radius: 12px;
-    color: white;
-    font-family: 'Vazirmatn', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-
+  .play-again-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #1d4ed8, #3b82f6); border: none; border-radius: 12px; color: white; font-family: 'Vazirmatn', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; }
   .play-again-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(59,130,246,0.4); }
-
-  /* Pass overlay */
-  .pass-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(13,17,23,0.97);
-    z-index: 9998;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.35s;
-    backdrop-filter: blur(8px);
-  }
-
+  .pass-overlay { position: fixed; inset: 0; background: rgba(13,17,23,0.97); z-index: 9998; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; opacity: 0; pointer-events: none; transition: opacity 0.35s; backdrop-filter: blur(8px); }
   .pass-overlay.show { opacity: 1; pointer-events: all; }
   .pass-overlay-label { font-size: 12px; color: var(--muted); letter-spacing: 3px; }
   .pass-overlay-name { font-size: 30px; font-weight: 900; color: var(--accent2); }
   .pass-overlay-hint { font-size: 12px; color: rgba(100,116,139,0.6); margin-top: 8px; }
-
-  /* scrollbar */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.3); border-radius: 2px; }
@@ -785,21 +140,18 @@ rel="stylesheet">
 </head>
 <body>
 
-<!-- Pass Overlay -->
 <div class="pass-overlay" id="pass-overlay">
   <div class="pass-overlay-label">نوبت بعدی:</div>
   <div class="pass-overlay-name" id="pass-name"></div>
   <div class="pass-overlay-hint">برای ادامه کلیک کنید</div>
 </div>
 
-<!-- ===== SETUP SCREEN ===== -->
 <div class="screen active" id="setup-screen">
   <div class="hero">
     <span class="hero-icon">🕵️</span>
     <div class="hero-title">جاسوس</div>
     <div class="hero-sub">بازی گروهی استراتژیک</div>
   </div>
-
   <div class="setup-card">
     <div class="section-label">تعداد بازیکنان</div>
     <div class="count-selector" id="count-btns">
@@ -810,9 +162,7 @@ rel="stylesheet">
       <button class="count-btn" onclick="setCount(8)">۸ نفر</button>
       <button class="count-btn" onclick="setCount(10)">۱۰ نفر</button>
     </div>
-
     <div id="names-grid"></div>
-
     <div class="spy-count-row">
       <div class="spy-count-label">🕵️ تعداد جاسوس‌ها</div>
       <div class="spy-counter">
@@ -821,23 +171,19 @@ rel="stylesheet">
         <button onclick="changeSpy(1)">+</button>
       </div>
     </div>
-
     <div class="section-label">دسته‌بندی کلمات</div>
     <div class="category-grid" id="cat-grid"></div>
-
     <div class="section-label">زمان بازی</div>
-    <div class="count-selector" style="margin-bottom:28px;">
-      <button class="count-btn" onclick="setTimer(5)">۵ دقیقه</button>
-      <button class="count-btn active" onclick="setTimer(8)">۸ دقیقه</button>
-      <button class="count-btn" onclick="setTimer(10)">۱۰ دقیقه</button>
-      <button class="count-btn" onclick="setTimer(12)">۱۲ دقیقه</button>
+    <div class="count-selector" id="timer-btns" style="margin-bottom:28px;">
+      <button class="count-btn" onclick="setTimer(5,this)">۵ دقیقه</button>
+      <button class="count-btn active" onclick="setTimer(8,this)">۸ دقیقه</button>
+      <button class="count-btn" onclick="setTimer(10,this)">۱۰ دقیقه</button>
+      <button class="count-btn" onclick="setTimer(12,this)">۱۲ دقیقه</button>
     </div>
-
     <button class="start-btn" onclick="startGame()">▶ شروع توزیع نقش‌ها</button>
   </div>
 </div>
 
-<!-- ===== REVEAL SCREEN ===== -->
 <div class="screen" id="reveal-screen">
   <div class="reveal-wrap">
     <div class="reveal-header">
@@ -845,7 +191,6 @@ rel="stylesheet">
       <div class="turn-name" id="reveal-player-name">—</div>
       <div class="pdots" id="pdots"></div>
     </div>
-
     <div class="card-wrap" onclick="flipCard()">
       <div class="card-inner" id="card-inner">
         <div class="cface cback">
@@ -862,13 +207,11 @@ rel="stylesheet">
         </div>
       </div>
     </div>
-
     <div class="tap-hint" id="tap-hint">👆 روی کارت کلیک کنید</div>
     <button class="next-btn" id="next-btn" onclick="nextReveal()">بازیکن بعدی ←</button>
   </div>
 </div>
 
-<!-- ===== GAME SCREEN ===== -->
 <div class="screen" id="game-screen">
   <div class="game-header">
     <div class="game-title">🕵️ بازی جاسوس</div>
@@ -878,12 +221,10 @@ rel="stylesheet">
       <button class="timer-btn" id="timer-toggle-btn" onclick="toggleTimer()">شروع</button>
     </div>
   </div>
-
   <div class="players-panel">
     <div class="panel-title">بازیکنان — کلیک برای حذف</div>
     <div class="players-list" id="players-list"></div>
   </div>
-
   <div class="vote-section">
     <div class="vote-title">🗳️ وقتی آماده رای‌گیری شدید:</div>
     <div class="action-btns">
@@ -893,13 +234,11 @@ rel="stylesheet">
   </div>
 </div>
 
-<!-- ===== RESULT SCREEN ===== -->
 <div class="screen" id="result-screen">
   <div class="result-box">
     <div class="result-icon" id="result-icon"></div>
     <div class="result-title" id="result-title"></div>
     <div class="result-sub" id="result-sub"></div>
-
     <div class="location-reveal">
       <div class="loc-icon" id="res-loc-icon"></div>
       <div class="loc-info">
@@ -907,55 +246,85 @@ rel="stylesheet">
         <div class="loc-name" id="res-loc-name"></div>
       </div>
     </div>
-
     <div class="reveal-list" id="reveal-list"></div>
     <button class="play-again-btn" onclick="newGame()">↺ بازی جدید</button>
   </div>
 </div>
 
 <script>
-// ===== LOCATIONS DATABASE =====
 const LOCATIONS = {
   'چیزهایی که بوی بد می‌دهند': [
-    {name:'جوراب کثیف',icon:'🧦'},{name:'سطل زباله',icon:'🗑️'},{name:'تخم‌مرغ گندیده',icon:'🥚'},{name:'ماهی فاسد',icon:'🐟'},{name:'پنیر کهنه',icon:'🧀'},{name:'کفش کتانی کهنه',icon:'👟'},{name:'دستشویی عمومی',icon:'🚻'},{name:'فاضلاب',icon:'💧'},{name:'شیر ترش',icon:'🥛'},{name:'گوشت فاسد',icon:'🥩'},{name:'زباله‌دان پر',icon:'🗑️'},{name:'لباس عرق‌کرده',icon:'👕'},{name:'موی سوخته',icon:'💇'},{name:'رنگ دیوار',icon:'🎨'},{name:'بنزین',icon:'⛽'},{name:'قوطی کمپوت باز',icon:'🥫'},{name:'موز سیاه‌شده',icon:'🍌'},{name:'آشغال تر',icon:'🗑️'},{name:'لاستیک سوخته',icon:'🔥'},{name:'دود سیگار',icon:'🚬'},{name:'گربه‌ای که زیر باران مانده',icon:'🐱'},{name:'پوست پیاز',icon:'🧅'},{name:'کمپوست',icon:'🌿'},{name:'فضله پرنده',icon:'🐦'},{name:'آب راکد',icon:'💧'},{name:'جوی آب کثیف',icon:'🌊'},{name:'مرداب',icon:'🏞️'},{name:'تنباکو',icon:'🌿'},{name:'آمونیاک',icon:'🧪'},{name:'سرکه تیز',icon:'🍶'},{name:'لجن',icon:'🟫'},{name:'سیب گندیده',icon:'🍎'},{name:'کلم پخته‌شده',icon:'🥦'},{name:'کود مرغی',icon:'🐔'},{name:'روغن موتور',icon:'🛢️'},{name:'کانال فاضلاب',icon:'🚰'},{name:'پارچه مرطوب ماند',icon:'🧺'},{name:'پلاستیک سوخته',icon:'♻️'},{name:'دندان‌درد',icon:'🦷'},{name:'نفتالین',icon:'⚪'},{name:'مرغ نیم‌پز',icon:'🍗'},{name:'آب دریای راکد',icon:'🌊'},{name:'پنبه کهنه',icon:'🩹'},{name:'کنسرو باز',icon:'🥫'},{name:'مانتوی مانده در کمد',icon:'👘'},{name:'چرم مرطوب',icon:'👜'},{name:'قفس پرنده',icon:'🐦'},{name:'مزرعه گاو',icon:'🐄'},{name:'آغل',icon:'🐖'},{name:'لانه موش',icon:'🐭'},{name:'فرش مرطوب',icon:'🏠'},{name:'کفش باران‌خورده',icon:'👞'},{name:'زیر بغل عرق‌کرده',icon:'💪'},{name:'اسفنج کثیف',icon:'🧽'},{name:'تخته مرطوب',icon:'🏋️'},{name:'گربه کثیف',icon:'🐈'},{name:'ماهی تابه',icon:'🍳'},{name:'خاکستر سیگار',icon:'🚬'},{name:'پشت‌بام قیراندود',icon:'🏠'},{name:'کود شیمیایی',icon:'🌱'},{name:'استخر کثیف',icon:'🏊'},{name:'چسب صنعتی',icon:'🔧'},{name:'رنگ روغن',icon:'🖌️'},{name:'روغن ماهی',icon:'🐠'},{name:'دهان ناشسته',icon:'😮'},{name:'کاغذ دیواری کهنه',icon:'📜'},{name:'گوجه گندیده',icon:'🍅'},{name:'برگ پوسیده',icon:'🍂'},{name:'سیب‌زمینی جوانه‌زده',icon:'🥔'},{name:'نارنجی پوسیده',icon:'🍊'},{name:'چای مانده',icon:'🍵'},{name:'قهوه سوخته',icon:'☕'},{name:'دودکش',icon:'🏭'},{name:'کباب دودی',icon:'🍢'},{name:'سوسیس قدیمی',icon:'🌭'},{name:'ماست کپک‌زده',icon:'🥛'},{name:'خامه ترش‌شده',icon:'🍦'},{name:'انگور کهنه',icon:'🍇'},{name:'موش مرده',icon:'🐀'},{name:'حشره‌کش',icon:'🪲'},{name:'زهر موش',icon:'☠️'},{name:'عطر تند',icon:'🌹'},{name:'دود هیزم',icon:'🪵'},{name:'پشم سوخته',icon:'🐑'},{name:'دود اتوبوس',icon:'🚌'},{name:'دستکش پلاستیکی',icon:'🧤'},{name:'کیسه‌ی زباله',icon:'🗑️'},{name:'سطل نظافت',icon:'🪣'},{name:'گودال',icon:'🕳️'},{name:'استخوان قدیمی',icon:'🦴'},{name:'غذای سگ',icon:'🐕'},{name:'پوست موز لیز',icon:'🍌'},{name:'گوشت دودی',icon:'🥓'},{name:'پنیر بلو',icon:'🧀'},{name:'نان کپک‌زده',icon:'🍞'},{name:'توالت بسته‌شده',icon:'🚽'},{name:'لوله مسدود',icon:'🔧'},{name:'سینک کثیف',icon:'🚰'},{name:'تفاله چای',icon:'🍵'},{name:'ظرف ماند',icon:'🍽️'},{name:'آب پیاز',icon:'🧅'},{name:'پوست سیر',icon:'🧄'},{name:'پیاز داغ قدیمی',icon:'🍳'},{name:'لباس نمناک',icon:'👔'},{name:'چمدان قدیمی',icon:'🧳'},{name:'آشپزخانه کثیف',icon:'🍳'},{name:'اتاق بسته',icon:'🚪'},{name:'کفش ورزشی عرق',icon:'👟'},{name:'حوله مرطوب',icon:'🛁'},{name:'تشک کهنه',icon:'🛏️'},{name:'بالش دودی',icon:'🛌'},{name:'موکت مرطوب',icon:'🏠'},{name:'دود سرخ‌کردنی',icon:'🍟'},{name:'کارخانه',icon:'🏭'},{name:'رودخانه آلوده',icon:'🌊'},{name:'محل دفن زباله',icon:'🗑️'},{name:'خاکروبه',icon:'🏚️'},{name:'فاضلاب شهری',icon:'🚰'},{name:'دیوار مرطوب',icon:'🧱'},{name:'زیرزمین نمناک',icon:'🏚️'},{name:'انبار قدیمی',icon:'📦'},{name:'طویله',icon:'🐴'},{name:'قفس خرگوش',icon:'🐇'},{name:'کیسه حمام',icon:'🛁'},{name:'جوراب‌های باشگاه',icon:'🧦'},{name:'کیف ورزشی',icon:'🎒'},{name:'سبد لباس کثیف',icon:'🧺'},{name:'قفس همستر',icon:'🐹'},{name:'آکواریوم کثیف',icon:'🐠'},{name:'غذای گربه',icon:'🐱'},{name:'خاک گلدان مرطوب',icon:'🌱'},{name:'برگ‌های مرده',icon:'🍂'},{name:'کمپوست باغ',icon:'🌿'},{name:'حمام عمومی',icon:'🚿'},{name:'رخت‌شویخانه',icon:'🧺'},{name:'آب‌انبار',icon:'💧'},{name:'سرداب',icon:'🏚️'},{name:'تونل فاضلاب',icon:'🕳️'},{name:'کانال آب',icon:'🌊'},{name:'قبرستان',icon:'⚰️'},{name:'محل کمپوست',icon:'🌿'},{name:'محل نگهداری زباله',icon:'🗑️'},{name:'اتاق بدون تهویه',icon:'🚪'},{name:'کمد قدیمی',icon:'🪞'},{name:'تاریکخانه',icon:'📷'},{name:'زیرپله',icon:'🏠'},{name:'گاراژ قدیمی',icon:'🚗'},{name:'انبار نفت',icon:'🛢️'},{name:'سالن رنگ‌کاری',icon:'🎨'},{name:'کارگاه جوش',icon:'🔩'},{name:'قصابی',icon:'🥩'},{name:'پرورش ماهی',icon:'🐟'},{name:'دامپروری',icon:'🐄'},{name:'کارخانه کود',icon:'🌱'},{name:'کوره آهنگری',icon:'⚒️'},{name:'انبار سبزیجات',icon:'🥬'},{name:'میوه‌فروشی کهنه',icon:'🍎'},{name:'بازار ماهی',icon:'🐟'},{name:'قهوه‌خانه قدیمی',icon:'☕'},{name:'انبار چرم',icon:'👜'},{name:'دباغ‌خانه',icon:'🐄'},{name:'کارخانه رنگ',icon:'🎨'},{name:'آزمایشگاه شیمی',icon:'🧪'},{name:'انبار مواد شیمیایی',icon:'⚗️'},{name:'محل رنگ‌رزی',icon:'🌈'},{name:'کارخانه صابون',icon:'🧼'},{name:'محل سوزاندن زباله',icon:'🔥'},{name:'خرابه',icon:'🏚️'},{name:'باتلاق',icon:'🌿'},{name:'لجن‌زار',icon:'🟫'},{name:'آبگیر راکد',icon:'💧'},{name:'پشه‌زار',icon:'🦟'},{name:'جنگل مرطوب',icon:'🌲'},{name:'غار',icon:'🦇'},{name:'انبار پیاز',icon:'🧅'},{name:'خمره ترشی',icon:'🫙'},{name:'خمیرمایه قدیمی',icon:'🍞'},{name:'انبار سرکه',icon:'🍶'},{name:'آبجوسازی',icon:'🍺'},{name:'تخمیرگاه',icon:'🍷'},{name:'کارخانه‌ی پنیر',icon:'🧀'},{name:'محل نگهداری ماهی',icon:'🐠'},{name:'سردخانه معیوب',icon:'❄️'},{name:'یخچال خراب',icon:'🧊'},{name:'ظرف مانده در یخچال',icon:'🍽️'},{name:'باقی‌مانده غذا',icon:'🥡'},{name:'تفاله میوه',icon:'🍑'},{name:'پوست هندوانه',icon:'🍉'},{name:'هسته آوکادو',icon:'🥑'},{name:'تفاله آبمیوه‌گیری',icon:'🍊'},{name:'زمین نمناک',icon:'🌧️'},{name:'سطح خیابان پس از باران',icon:'🌧️'},{name:'چاله آب',icon:'💧'},{name:'لوله آب شکسته',icon:'🔧'},{name:'تابستان گرم و مرطوب',icon:'☀️'},{name:'لباس‌های ورزشی',icon:'🏋️'},{name:'باشگاه ورزشی',icon:'🏋️'},{name:'رختکن',icon:'🚿'},{name:'کمد ورزشگاه',icon:'🔒'},{name:'کفش کوهنوردی',icon:'🥾'},{name:'کوله‌پشتی مانده',icon:'🎒'},{name:'چادر کمپ',icon:'⛺'},{name:'خوابگاه',icon:'🏠'},{name:'اتاق جمعی',icon:'🛏️'},{name:'ماشین قدیمی',icon:'🚗'},{name:'صندوق عقب ماشین',icon:'🚗'},{name:'موتورسیکلت دودی',icon:'🏍️'},{name:'اتوبوس شلوغ',icon:'🚌'},{name:'مترو',icon:'🚇'},{name:'پارکینگ زیرزمینی',icon:'🅿️'},{name:'تانکر سوخت',icon:'🛢️'},{name:'انبار نفت‌کش',icon:'🚢'},{name:'موتورخانه',icon:'⚙️'},{name:'اتاق موتور',icon:'🔧'},{name:'کشتی قدیمی',icon:'🚢'},{name:'انبار کشتی',icon:'⚓'},{name:'بندر قدیمی',icon:'⚓'},{name:'دریاچه آلوده',icon:'🌊'},{name:'ساحل پس از طوفان',icon:'🌊'},{name:'کمربند صنعتی',icon:'🏭'},{name:'محل معدن',icon:'⛏️'},{name:'کارخانه آسفالت',icon:'🛣️'},{name:'محل ساخت‌وساز',icon:'🏗️'},{name:'دودکش کارخانه',icon:'🏭'},{name:'مخزن آب راکد',icon:'💧'},{name:'حوضچه ماهی',icon:'🐟'},{name:'مرداب جنگلی',icon:'🌿'},{name:'آبگیر کوچک',icon:'💧'},{name:'باتلاق حشرات',icon:'🦟'},{name:'محل تخمیر کمپوست',icon:'🌿'},{name:'لجن خشک‌شده',icon:'🟫'},{name:'خاک رسی مرطوب',icon:'🏺'},{name:'دیوار قارچ‌زده',icon:'🍄'},{name:'اتاق قارچ‌کاری',icon:'🍄'},{name:'سیلو گندم مرطوب',icon:'🌾'},{name:'انبار کاه',icon:'🌾'},{name:'طبل آب باران',icon:'🥁'},{name:'ناودان گرفته',icon:'🏠'},{name:'پشت‌بام زه‌کشی نشده',icon:'🏠'},{name:'دیوار بدون رطوبت‌گیر',icon:'🧱'},{name:'نم دیوار',icon:'🧱'},{name:'زیرزمین رطوبتی',icon:'🏚️'},{name:'سقف نشتی',icon:'🏠'},{name:'لوله فاضلاب گرفته',icon:'🔧'},{name:'چاه پر',icon:'🕳️'},{name:'توالت فرنگی گرفته',icon:'🚽'},{name:'ظرفشویی مسدود',icon:'🚰'},{name:'لباسشویی خراب',icon:'🧺'},{name:'خشک‌کن خراب',icon:'👕'},{name:'هود آشپزخانه کثیف',icon:'🍳'},{name:'فیلتر روغن کثیف',icon:'🔧'},{name:'دستگاه تصفیه هوای کثیف',icon:'💨'},{name:'کولر گازی با قارچ',icon:'❄️'},{name:'رادیاتور زنگ‌زده',icon:'♨️'},{name:'لوله‌های زنگ‌زده',icon:'🔧'},{name:'آب‌گرم‌کن قدیمی',icon:'🔥'},{name:'کباب‌پز قدیمی',icon:'🍢'},{name:'منقل دودی',icon:'🔥'},{name:'تنور قدیمی',icon:'🫓'},{name:'اجاق هیزمی',icon:'🪵'},{name:'شومینه کثیف',icon:'🔥'},{name:'دودکش شومینه',icon:'🏠'},{name:'پشم شیشه',icon:'🏗️'},{name:'عایق رطوبتی',icon:'🏗️'},{name:'روغن ماشین سوخته',icon:'🛢️'},{name:'ضایعاتی',icon:'♻️'},{name:'آهن‌فروشی',icon:'⚙️'},{name:'کباب‌پز چوبی',icon:'🍢'},{name:'هیزم خیس',icon:'🪵'},{name:'خاکستر مانده',icon:'🔥'},{name:'خاک محل آتش',icon:'🔥'},{name:'پوشش پلاستیکی سوخته',icon:'♻️'},{name:'رنگ فوری',icon:'🎨'},{name:'پاک‌کننده قوی',icon:'🧼'},{name:'حلال رنگ',icon:'🧪'},{name:'تینر',icon:'⚗️'},{name:'ضدعفونی‌کننده تند',icon:'🧪'},{name:'وایتکس',icon:'🧴'},{name:'اسید قوی',icon:'⚗️'},{name:'سولفور',icon:'🟡'},{name:'آمونیاک خانگی',icon:'🧴'},{name:'سرکه تقطیر',icon:'🍶'},{name:'الکل صنعتی',icon:'🍶'},{name:'نفت سفید',icon:'🛢️'},{name:'گازوئیل',icon:'⛽'},{name:'مازوت',icon:'🛢️'},{name:'آسفالت گرم',icon:'🛣️'},{name:'قیر',icon:'⬛'},{name:'لاستیک سوزانده',icon:'🔥'},{name:'دود تایر',icon:'💨'},{name:'اگزوز',icon:'🚗'},{name:'کاربراتور کثیف',icon:'🔧'},{name:'موتور دیزل',icon:'⚙️'},{name:'دستگاه جوش',icon:'🔩'},{name:'قالب‌ریزی فلز',icon:'⚒️'},{name:'محل خاموش کردن فلز',icon:'⚙️'},{name:'سالن رنگ‌پاشی',icon:'🎨'},{name:'کارگاه چرم',icon:'👜'},{name:'انبار پوست حیوان',icon:'🦊'},{name:'پوست خشک‌شده',icon:'🐄'},{name:'کارخانه پاپوش',icon:'👞'},{name:'انبار کفش',icon:'👟'},{name:'مغازه کفاشی',icon:'👞'},{name:'پارچه‌فروشی کهنه',icon:'🧵'},{name:'انبار پارچه',icon:'🧶'},{name:'خیاطخانه قدیمی',icon:'✂️'},{name:'خشکشویی',icon:'👗'},{name:'محل نگهداری لباس کار',icon:'👷'},{name:'لباس‌های جراحی',icon:'🏥'},{name:'اتاق عمل',icon:'🏥'},{name:'آزمایشگاه',icon:'🔬'},{name:'مرده‌شویخانه',icon:'⚰️'},{name:'سردخانه بیمارستان',icon:'🏥'},{name:'محل نگهداری دارو منقضی',icon:'💊'},{name:'داروخانه کهنه',icon:'💊'},{name:'ضدعفونی بیمارستان',icon:'🏥'},{name:'اتاق ایزوله',icon:'🚪'},{name:'محل دفع پسماند پزشکی',icon:'🗑️'},{name:'دفن مواد زیان‌آور',icon:'☢️'},{name:'محل نگهداری اسکلت',icon:'💀'},{name:'موزه تاریخ طبیعی',icon:'🦕'},{name:'تاکسیدرمی',icon:'🦊'},{name:'انبار نمونه‌های زیستی',icon:'🔬'},{name:'ترشیجات قدیمی',icon:'🫙'},{name:'خمره‌های کپک‌زده',icon:'🍶'},{name:'بشکه ترشی باز',icon:'🫙'},{name:'مربا کهنه',icon:'🍯'},{name:'عسل قدیمی',icon:'🍯'},{name:'روغن زیتون تلخ‌شده',icon:'🫒'},{name:'کره ترشیده',icon:'🧈'},{name:'روغن نخل قدیمی',icon:'🛢️'},{name:'ادویه منقضی',icon:'🌶️'},{name:'آرد کرم‌زده',icon:'🌾'},{name:'برنج کپک‌زده',icon:'🍚'},{name:'حبوبات کرم‌خورده',icon:'🫘'},{name:'آجیل ترشیده',icon:'🥜'},{name:'انجیر کپک',icon:'🍈'},{name:'توت خشک‌شده',icon:'🍓'},{name:'میوه خشک‌شده',icon:'🍑'},{name:'گوشت خشک‌شده',icon:'🥩'},{name:'ماهی نمک‌سود',icon:'🐟'},{name:'لیمو خشک',icon:'🍋'},{name:'گلاب قدیمی',icon:'🌹'},{name:'عرق‌های گیاهی کهنه',icon:'🌿'},{name:'دمنوش فاسد',icon:'🍵'},{name:'عطر تقلبی',icon:'🌹'},{name:'صابون ارزان',icon:'🧼'},{name:'شامپوی کهنه',icon:'🧴'},{name:'لوسیون ترشیده',icon:'🧴'},{name:'لاک پوست‌کنده',icon:'💅'},{name:'ناخن‌های آغشته',icon:'💅'},{name:'خمیردندان منقضی',icon:'🦷'},{name:'دهانشویه تند',icon:'🦷'},{name:'داروی تلخ',icon:'💊'},{name:'ویتامین‌های قدیمی',icon:'💊'},{name:'گچ بیمارستانی',icon:'🏥'},{name:'گچ دیوار تر',icon:'🧱'},{name:'سفیدآب',icon:'🧴'},{name:'گرد پاک‌کننده',icon:'🧹'},{name:'جارو قدیمی',icon:'🧹'},{name:'دسته‌ی تی‌آلوده',icon:'🧹'},{name:'سطل‌های آب آلوده',icon:'🪣'},{name:'تمیزکننده‌ی توالت',icon:'🧴'},{name:'آهک',icon:'⬜'},{name:'سیمان تازه',icon:'🏗️'},{name:'کارگاه ساختمانی',icon:'🏗️'},{name:'گرد و خاک گچ',icon:'💨'},{name:'دود جوش',icon:'🔩'},{name:'مواد سمی',icon:'☠️'},{name:'کود کمپوست',icon:'🌱'},{name:'ریشه‌های پوسیده',icon:'🌿'},{name:'قارچ‌های وحشی',icon:'🍄'},{name:'توده برگ‌های پوسیده',icon:'🍂'},{name:'گیاهان در حال فساد',icon:'🌿'},{name:'آب حاصل از پوسیدگی',icon:'💧'},{name:'جنگل پس از باران',icon:'🌲'},{name:'خاک جنگلی',icon:'🌲'},{name:'غار خفاش',icon:'🦇'},{name:'فضله خفاش',icon:'🦇'},{name:'لانه پرنده',icon:'🐦'},{name:'مرغابی‌های دریاچه',icon:'🦆'},{name:'مرداب تابستانی',icon:'🌿'},{name:'آب ایستاده',icon:'💧'},{name:'لارو حشرات',icon:'🪲'},{name:'مگس روی زباله',icon:'🦟'},{name:'ملخ‌های مرده',icon:'🦗'},{name:'موریانه‌کشی',icon:'🪲'},{name:'سوسک‌کشی',icon:'🪳'},{name:'مرغ‌خانه',icon:'🐔'},{name:'قفس پرندگان',icon:'🐦'},{name:'پر و فضله پرنده',icon:'🐦'},{name:'باغ وحش',icon:'🦁'},{name:'قفس شیر',icon:'🦁'},{name:'فیل‌دانی',icon:'🐘'},{name:'منطقه‌ی آفتابی حیوانات',icon:'🦓'},{name:'حمام گاو',icon:'🐄'},{name:'مزرعه خوک',icon:'🐖'},{name:'لانه‌ی حلزون',icon:'🐌'},{name:'محل نگهداری ماهی‌های مرده',icon:'🐟'},{name:'تله موش',icon:'🐭'},{name:'دام حشرات',icon:'🦟'},{name:'سم‌پاشی',icon:'☠️'},{name:'دفع آفات',icon:'🪲'},{name:'انبار سم کشاورزی',icon:'☠️'},{name:'مزرعه سمپاشی‌شده',icon:'🌾'},{name:'گلخانه رطوبتی',icon:'🪴'},{name:'استخر رشد جلبک',icon:'🌿'},{name:'محل تولید بیوگاز',icon:'⚡'},{name:'تانکر بیوگاز',icon:'⚡'},{name:'چاه‌های نفت',icon:'⛽'},{name:'میدان گاز',icon:'🔥'},{name:'لوله‌کشی گاز معیوب',icon:'🔧'},{name:'اجاق گاز معیوب',icon:'🍳'},{name:'کپسول گاز نشتی',icon:'⛽'},{name:'سالن بویلر',icon:'♨️'},{name:'دیگ بخار',icon:'♨️'},{name:'اتاق کنترل کارخانه',icon:'🏭'},{name:'سالن تولید مواد شیمیایی',icon:'⚗️'},{name:'پالایشگاه',icon:'🏭'},{name:'مجتمع پتروشیمی',icon:'🏭'},{name:'نیروگاه',icon:'⚡'},{name:'مخزن زباله اتمی',icon:'☢️'},{name:'محل دفن ضایعات',icon:'🗑️'},{name:'لندفیل',icon:'🗑️'},{name:'محل بازیافت',icon:'♻️'},{name:'مخزن خاکستر',icon:'🔥'},{name:'کوره‌ی آجرپزی',icon:'🏗️'},{name:'سالن قوطی‌سازی',icon:'🥫'},{name:'خط تولید ماهی کنسرو',icon:'🐟'},{name:'کارخانه‌ی کالباس',icon:'🌭'},{name:'کشتارگاه',icon:'🐄'},{name:'مرغداری صنعتی',icon:'🐔'},{name:'پرورش گاوهای شیری',icon:'🐄'},{name:'مزرعه بزرگ ماهی',icon:'🐟'},{name:'تخلیه چاه',icon:'🕳️'},{name:'محل تعمیر چاه',icon:'🔧'},{name:'خدمات چاه‌کنی',icon:'⛏️'},{name:'دستگاه تخلیه چاه',icon:'🚛'},{name:'تانکر فاضلاب',icon:'🚛'},{name:'محل تصفیه فاضلاب',icon:'🚰'},{name:'تصفیه‌خانه',icon:'💧'},{name:'شبکه آب آلوده',icon:'💧'},{name:'رودخانه کثیف',icon:'🌊'},{name:'دریاچه‌ی آلوده',icon:'🌊'},{name:'خلیج صنعتی',icon:'🌊'},{name:'ساحل نفت‌گرفته',icon:'🌊'},{name:'پناهگاه کشتی‌های قراضه',icon:'⚓'},{name:'قبرستان کشتی',icon:'⚓'},{name:'حیاط خلوت کثیف',icon:'🏠'},{name:'کوچه‌پس‌کوچه کثیف',icon:'🏙️'},{name:'منطقه فقیرنشین',icon:'🏚️'},{name:'پیاده‌رو پس از باران',icon:'🌧️'},{name:'چاهک خیابانی',icon:'🕳️'},{name:'آب ناودان',icon:'💧'},{name:'جوی‌های خیابانی',icon:'🌊'}
+    {name:'جوراب کثیف',icon:'🧦'},{name:'سطل زباله',icon:'🗑️'},{name:'تخم‌مرغ گندیده',icon:'🥚'},
+    {name:'ماهی فاسد',icon:'🐟'},{name:'پنیر کهنه',icon:'🧀'},{name:'کفش کتانی کهنه',icon:'👟'},
+    {name:'دستشویی عمومی',icon:'🚻'},{name:'شیر ترش',icon:'🥛'},{name:'گوشت فاسد',icon:'🥩'},
+    {name:'لباس عرق‌کرده',icon:'👕'},{name:'موی سوخته',icon:'💇'},{name:'بنزین',icon:'⛽'},
+    {name:'موز سیاه‌شده',icon:'🍌'},{name:'لاستیک سوخته',icon:'🔥'},{name:'دود سیگار',icon:'🚬'},
+    {name:'پوست پیاز',icon:'🧅'},{name:'کمپوست',icon:'🌿'},{name:'آمونیاک',icon:'🧪'},
+    {name:'سرکه تیز',icon:'🍶'},{name:'لجن',icon:'🟫'},{name:'سیب گندیده',icon:'🍎'},
+    {name:'کلم پخته',icon:'🥦'},{name:'روغن موتور',icon:'🛢️'},{name:'مرداب',icon:'🏞️'},
+    {name:'نفتالین',icon:'⚪'},{name:'آب دریای راکد',icon:'🌊'},{name:'فضله پرنده',icon:'🐦'},
+    {name:'کود مرغی',icon:'🐔'},{name:'دهان ناشسته',icon:'😮'},{name:'گوجه گندیده',icon:'🍅'}
   ],
   'وسایل روزمره': [
-    {name:'لپ‌تاپ',icon:'💻'},{name:'گوشی موبایل',icon:'📱'},{name:'ساعت مچی',icon:'⌚'},{name:'عینک',icon:'👓'},{name:'کیف پول',icon:'👛'},{name:'کوله‌پشتی',icon:'🎒'},{name:'چتر',icon:'☂️'},{name:'کارت بانکی',icon:'💳'},{name:'کلید',icon:'🔑'},{name:'خودکار',icon:'🖊️'},{name:'دفترچه',icon:'📓'},{name:'کتاب',icon:'📚'},{name:'عینک آفتابی',icon:'🕶️'},{name:'هدفون',icon:'🎧'},{name:'شارژر',icon:'🔌'},{name:'پاوربانک',icon:'🔋'},{name:'فلاسک',icon:'🫙'},{name:'قمقمه',icon:'🚰'},{name:'قمقمه آب',icon:'💧'},{name:'چاقوی جیبی',icon:'🔪'},{name:'قیچی',icon:'✂️'},{name:'خط‌کش',icon:'📏'},{name:'ماژیک',icon:'🖊️'},{name:'مداد',icon:'✏️'},{name:'پاک‌کن',icon:'🧹'},{name:'تراش',icon:'✂️'},{name:'منگنه',icon:'📎'},{name:'گیره کاغذ',icon:'📎'},{name:'نوار چسب',icon:'🩹'},{name:'چسب ماتیک',icon:'🖊️'},{name:'کتاب یادداشت',icon:'📒'},{name:'برگه چسبنده',icon:'📝'},{name:'تقویم',icon:'📅'},{name:'کلاسور',icon:'📁'},{name:'پوشه',icon:'📂'},{name:'زونکن',icon:'📁'},{name:'پانچ',icon:'📎'},{name:'لیست خرید',icon:'📝'},{name:'لیست وظایف',icon:'✅'},{name:'چراغ‌قوه',icon:'🔦'},{name:'فندک',icon:'🔥'},{name:'کبریت',icon:'🔥'},{name:'دستمال',icon:'🧻'},{name:'دستمال کاغذی',icon:'🧻'},{name:'ماسک',icon:'😷'},{name:'دستکش',icon:'🧤'},{name:'کلاه',icon:'🧢'},{name:'روسری',icon:'🧣'},{name:'دستبند',icon:'💍'},{name:'گردنبند',icon:'📿'},{name:'انگشتر',icon:'💍'},{name:'گوشواره',icon:'💎'},{name:'برس مو',icon:'💇'},{name:'شانه',icon:'💇'},{name:'آینه جیبی',icon:'🪞'},{name:'رژلب',icon:'💄'},{name:'خط چشم',icon:'✏️'},{name:'ریمل',icon:'👁️'},{name:'پنکک',icon:'💄'},{name:'برق لب',icon:'💄'},{name:'خط‌کشی',icon:'✏️'},{name:'وی‌شیپ',icon:'💄'},{name:'اسپری مو',icon:'💇'},{name:'ژل مو',icon:'💇'},{name:'ادوکلن',icon:'🌹'},{name:'عطر',icon:'🌹'},{name:'دئودورانت',icon:'🧴'},{name:'کرم پوست',icon:'🧴'},{name:'ضدآفتاب',icon:'☀️'},{name:'مرطوب‌کننده',icon:'🧴'},{name:'تونر',icon:'💧'},{name:'سرم',icon:'💉'},{name:'ماسک صورت',icon:'😷'},{name:'پد آرایشی',icon:'🧴'},{name:'پنبه',icon:'🩹'},{name:'بند ناخن',icon:'✂️'},{name:'سوهان ناخن',icon:'💅'},{name:'لاک ناخن',icon:'💅'},{name:'لاک‌بردار',icon:'🧴'},{name:'کرم دست',icon:'🧴'},{name:'جوراب',icon:'🧦'},{name:'زیرپوش',icon:'👕'},{name:'تی‌شرت',icon:'👕'},{name:'پیراهن',icon:'👔'},{name:'شلوار',icon:'👖'},{name:'جین',icon:'👖'},{name:'کت',icon:'🥼'},{name:'پالتو',icon:'🧥'},{name:'بارانی',icon:'🌧️'},{name:'کفش',icon:'👞'},{name:'صندل',icon:'👡'},{name:'دمپایی',icon:'🩴'},{name:'کفش ورزشی',icon:'👟'},{name:'کفش پاشنه‌دار',icon:'👠'},{name:'چکمه',icon:'👢'},{name:'کیف دستی',icon:'👜'},{name:'کوله‌پشتی کوچک',icon:'🎒'},{name:'چمدان',icon:'🧳'},{name:'کیف ورزشی',icon:'🎒'},{name:'کیف لپ‌تاپ',icon:'💼'},{name:'کیف اسناد',icon:'💼'},{name:'کیف خرید',icon:'🛍️'},{name:'ساک',icon:'🎒'},{name:'پلاستیک',icon:'🛍️'},{name:'جعبه ناهار',icon:'🍱'},{name:'قابلمه',icon:'🍲'},{name:'تابه',icon:'🍳'},{name:'ماهی‌تابه',icon:'🍳'},{name:'کتری',icon:'☕'},{name:'چای‌ساز',icon:'☕'},{name:'قهوه‌ساز',icon:'☕'},{name:'بلندر',icon:'🍹'},{name:'توستر',icon:'🍞'},{name:'مایکروویو',icon:'🍽️'},{name:'اجاق گاز',icon:'🍳'},{name:'فر',icon:'🍕'},{name:'یخچال',icon:'❄️'},{name:'فریزر',icon:'🧊'},{name:'ماشین ظرفشویی',icon:'🍽️'},{name:'ماشین لباسشویی',icon:'👕'},{name:'خشک‌کن لباس',icon:'👕'},{name:'جارو برقی',icon:'🧹'},{name:'جاروی دستی',icon:'🧹'},{name:'اتو',icon:'👔'},{name:'تخته اتو',icon:'👔'},{name:'بخاردهنده',icon:'💧'},{name:'تمیزکننده بخار',icon:'💧'},{name:'گردگیر',icon:'🧹'},{name:'ابر ظرفشویی',icon:'🧽'},{name:'مایع ظرفشویی',icon:'🧴'},{name:'مایع لباسشویی',icon:'🧴'},{name:'نرم‌کننده',icon:'🧴'},{name:'اسپری تمیزکننده',icon:'🧴'},{name:'دستمال مرطوب',icon:'🧻'},{name:'نایلون زباله',icon:'🗑️'},{name:'سطل آشپزخانه',icon:'🗑️'},{name:'لگن',icon:'🪣'},{name:'تی',icon:'🧹'},{name:'دستگیره',icon:'🚪'},{name:'چراغ مطالعه',icon:'💡'},{name:'چراغ خواب',icon:'💡'},{name:'شمع',icon:'🕯️'},{name:'فانوس',icon:'🏮'},{name:'تابلو',icon:'🖼️'},{name:'قاب عکس',icon:'🖼️'},{name:'آینه دیواری',icon:'🪞'},{name:'ساعت دیواری',icon:'🕐'},{name:'ساعت رومیزی',icon:'⏰'},{name:'زنگ هشدار',icon:'⏰'},{name:'رادیو',icon:'📻'},{name:'تلویزیون',icon:'📺'},{name:'ریموت',icon:'📺'},{name:'پخش‌کننده موسیقی',icon:'🎵'},{name:'اسپیکر',icon:'🔊'},{name:'اسپیکر بلوتوث',icon:'🔊'},{name:'اسپیکر بزرگ',icon:'🔈'},{name:'هدست',icon:'🎧'},{name:'میکروفون',icon:'🎤'},{name:'وبکم',icon:'📷'},{name:'دوربین',icon:'📷'},{name:'دوربین ویدیویی',icon:'🎥'},{name:'تبلت',icon:'📱'},{name:'کنسول بازی',icon:'🎮'},{name:'کنترلر بازی',icon:'🕹️'},{name:'هارد اکسترنال',icon:'💾'},{name:'فلش مموری',icon:'💾'},{name:'کارت حافظه',icon:'💾'},{name:'موس',icon:'🖱️'},{name:'صفحه‌کلید',icon:'⌨️'},{name:'مانیتور',icon:'🖥️'},{name:'چاپگر',icon:'🖨️'},{name:'اسکنر',icon:'📑'},{name:'فاکس',icon:'📠'},{name:'تلفن ثابت',icon:'📞'},{name:'کیبورد موزیکال',icon:'🎹'},{name:'گیتار',icon:'🎸'},{name:'پایه گوشی',icon:'📱'},{name:'نگه‌دارنده لپ‌تاپ',icon:'💻'},{name:'پد ماوس',icon:'🖱️'},{name:'محافظ صفحه',icon:'📱'},{name:'قاب گوشی',icon:'📱'},{name:'ایرپاد',icon:'🎵'},{name:'اتصال بلوتوث',icon:'📡'},{name:'روتر اینترنت',icon:'📡'},{name:'مودم',icon:'📡'},{name:'کابل شارژ',icon:'🔌'},{name:'کابل HDMI',icon:'🔌'},{name:'آداپتور',icon:'🔌'},{name:'محافظ برق',icon:'⚡'},{name:'یو‌پی‌اس',icon:'🔋'},{name:'چندراهی',icon:'🔌'},{name:'پریز',icon:'🔌'},{name:'کلید برق',icon:'💡'},{name:'سیم‌کشی',icon:'🔌'},{name:'چراغ مطالعه پایه‌دار',icon:'💡'},{name:'پنکه رومیزی',icon:'💨'},{name:'کولر آبی',icon:'❄️'},{name:'هیتر کوچک',icon:'♨️'},{name:'بخاری برقی',icon:'♨️'},{name:'دماسنج',icon:'🌡️'},{name:'فشارسنج',icon:'💊'},{name:'ترازو',icon:'⚖️'},{name:'قدسنج',icon:'📏'},{name:'ماساژور',icon:'💆'},{name:'دستگاه سونا',icon:'♨️'},{name:'شانه برقی',icon:'💇'},{name:'ریش‌تراش',icon:'💈'},{name:'اپیلاتور',icon:'💇'},{name:'خشک‌کن مو',icon:'💇'},{name:'فر مو',icon:'💇'},{name:'اتو مو',icon:'💇'},{name:'ست آرایش',icon:'💄'},{name:'پنکت',icon:'✂️'},{name:'موچین',icon:'✂️'},{name:'سوزن و نخ',icon:'🧵'},{name:'دستگاه خیاطی',icon:'🧵'},{name:'برچسب‌های برچسبی',icon:'🏷️'},{name:'خط‌کش فلزی',icon:'📏'},{name:'قطب‌نما',icon:'🧭'},{name:'نقشه',icon:'🗺️'},{name:'کتاب راهنما',icon:'📖'},{name:'فرهنگ لغت',icon:'📚'},{name:'دایره‌المعارف',icon:'📚'},{name:'آلبوم عکس',icon:'📷'},{name:'قاب عکس دیجیتال',icon:'🖼️'},{name:'خاطرات',icon:'📓'},{name:'مهر',icon:'📎'},{name:'جوهر مهر',icon:'🖊️'},{name:'پوشه دیپلماتیک',icon:'💼'},{name:'پارافین',icon:'🕯️'},{name:'چسب حرارتی',icon:'🔧'},{name:'دستگاه چسب‌زنی',icon:'🔧'},{name:'تفنگ چسب',icon:'🔧'},{name:'آچار',icon:'🔧'},{name:'پیچ‌گوشتی',icon:'🔩'},{name:'چکش',icon:'🔨'},{name:'میخ',icon:'🔩'},{name:'پیچ',icon:'🔩'},{name:'انبردست',icon:'🔧'},{name:'اره',icon:'🪚'},{name:'سوهان',icon:'⚒️'},{name:'متر',icon:'📏'},{name:'تراز',icon:'⚖️'},{name:'دریل',icon:'⚙️'},{name:'مته',icon:'⚙️'},{name:'سمباده',icon:'⚒️'},{name:'رنگ دیوار',icon:'🎨'},{name:'غلطک رنگ',icon:'🎨'},{name:'قلم رنگ',icon:'🖌️'},{name:'سیم سمباده',icon:'⚒️'},{name:'چاقو دیواری',icon:'🔪'},{name:'اسکرپر',icon:'⚒️'},{name:'کاردک',icon:'🔪'},{name:'سیفون',icon:'🚰'},{name:'پمپ آب',icon:'💧'},{name:'لوله‌کشی',icon:'🔧'},{name:'شیلنگ',icon:'🌊'},{name:'آبپاش',icon:'💧'},{name:'بیل',icon:'⛏️'},{name:'کلنگ',icon:'⛏️'},{name:'فرغون',icon:'🛒'},{name:'دستکش کار',icon:'🧤'},{name:'عینک ایمنی',icon:'🥽'},{name:'کلاه ایمنی',icon:'⛑️'},{name:'جلیقه ایمنی',icon:'🦺'},{name:'کمربند ایمنی',icon:'🦺'},{name:'کیسه بتون',icon:'🏗️'},{name:'سطل سیمان',icon:'🏗️'},{name:'ملاق',icon:'🏗️'},{name:'آجر',icon:'🏗️'},{name:'کاشی',icon:'🏗️'},{name:'گچ',icon:'🏗️'},{name:'سفیدآب',icon:'🧴'},{name:'مایع براق‌کننده',icon:'🧴'},{name:'پاک‌کننده کف',icon:'🧴'},{name:'اسکاچ ظرف',icon:'🧽'},{name:'برس ظرف',icon:'🪣'},{name:'برس توالت',icon:'🪣'},{name:'وانت آب',icon:'🚰'},{name:'شیر آب',icon:'🚰'},{name:'دوش',icon:'🚿'},{name:'وان',icon:'🛁'},{name:'روشویی',icon:'🚰'},{name:'آینه حمام',icon:'🪞'},{name:'جاحوله‌ای',icon:'🧺'},{name:'حوله',icon:'🛁'},{name:'حوله دست',icon:'🛁'},{name:'فرش حمام',icon:'🛁'},{name:'دمپایی حمام',icon:'🩴'},{name:'شامپو',icon:'🧴'},{name:'نرم‌کننده مو',icon:'🧴'},{name:'صابون',icon:'🧼'},{name:'خمیردندان',icon:'🦷'},{name:'مسواک',icon:'🦷'},{name:'دهانشویه',icon:'🦷'},{name:'نخ دندان',icon:'🦷'},{name:'خلال دندان',icon:'🦷'},{name:'اسکراب',icon:'🧴'},{name:'لیف',icon:'🛁'},{name:'کیسه',icon:'🛁'},{name:'سنگ پا',icon:'🪨'},{name:'ناخن‌گیر',icon:'✂️'},{name:'آینه زیبایی',icon:'🪞'},{name:'تشت',icon:'🪣'},{name:'کاسه رویی',icon:'🪣'},{name:'جای قرص',icon:'💊'},{name:'قرص صبح تا شب',icon:'💊'},{name:'ویتامین',icon:'💊'},{name:'مکمل',icon:'💊'},{name:'قطره بینی',icon:'💊'},{name:'قطره چشم',icon:'💊'},{name:'اسپری گلو',icon:'💊'},{name:'پماد',icon:'🧴'},{name:'باند',icon:'🩹'},{name:'گاز استریل',icon:'🩹'},{name:'چسب زخم',icon:'🩹'},{name:'پانسمان',icon:'🩹'},{name:'گرمایش موضعی',icon:'♨️'},{name:'کیسه آب گرم',icon:'♨️'},{name:'یخ درمانی',icon:'🧊'},{name:'قارچ‌کش پا',icon:'🦶'},{name:'کرم ضدخارش',icon:'🧴'},{name:'داروی ضدعفونی',icon:'🧪'},{name:'دستمال ضدعفونی',icon:'🧻'},{name:'ماسک N95',icon:'😷'},{name:'دماسنج دیجیتال',icon:'🌡️'},{name:'پالس‌اکسیمتر',icon:'💊'},{name:'گلوکومتر',icon:'💊'},{name:'کیت کمک اولیه',icon:'🩺'},{name:'باند فشاری',icon:'🩹'},{name:'آتل',icon:'🦴'},{name:'عصا',icon:'🦯'},{name:'واکر',icon:'🦽'},{name:'ویلچر',icon:'🦽'},{name:'عینک طبی',icon:'👓'},{name:'لنز تماسی',icon:'👁️'},{name:'سمعک',icon:'👂'},{name:'دندان مصنوعی',icon:'🦷'},{name:'پروتز',icon:'🦿'},{name:'بریس',icon:'🦴'},{name:'کفی طبی',icon:'👞'},{name:'کمربند طبی',icon:'🩺'},{name:'گردن‌بند طبی',icon:'🩺'},{name:'تخت تاشو',icon:'🛏️'},{name:'صندلی تاشو',icon:'🪑'},{name:'میز تاشو',icon:'🪑'},{name:'تشک بادی',icon:'🛏️'},{name:'کیسه خواب',icon:'🛏️'},{name:'چادر',icon:'⛺'},{name:'پتو اضطراری',icon:'🛏️'},{name:'کوله قله',icon:'🎒'},{name:'کوله طبیعت‌گردی',icon:'🎒'},{name:'چراغ پیشانی',icon:'🔦'},{name:'فانوس کمپ',icon:'🏮'},{name:'اجاق کمپینگ',icon:'🔥'},{name:'قوری کمپینگ',icon:'☕'},{name:'قاشق و چنگال کمپینگ',icon:'🍴'},{name:'ظروف کمپینگ',icon:'🍽️'},{name:'بطری آب صحرایی',icon:'💧'},{name:'تصفیه آب جیبی',icon:'💧'},{name:'فیلتر آب',icon:'💧'},{name:'قرص تصفیه آب',icon:'💊'},{name:'زاپاس',icon:'🚗'},{name:'آچار چرخ',icon:'🔧'},{name:'جک ماشین',icon:'🔧'},{name:'زنجیر چرخ',icon:'⛓️'},{name:'باتری ماشین',icon:'🔋'},{name:'کابل اتصال باتری',icon:'🔌'},{name:'نقشه راه',icon:'🗺️'},{name:'ردیاب GPS',icon:'📡'},{name:'بالیزه',icon:'⚡'},{name:'ادوات باغبانی',icon:'⛏️'},{name:'قیچی باغبانی',icon:'✂️'},{name:'شلنگ باغ',icon:'🌊'},{name:'آبپاش باغ',icon:'💧'},{name:'کود گیاهی',icon:'🌱'},{name:'سم آفت‌کش',icon:'☠️'},{name:'گلدان',icon:'🪴'},{name:'خاک گلدانی',icon:'🌱'},{name:'بذر',icon:'🌱'},{name:'پیوند',icon:'🌿'},{name:'نشاء',icon:'🌱'},{name:'ضدعفونی خاک',icon:'🧪'},{name:'ترشی‌گیری',icon:'🫙'},{name:'مربا پزی',icon:'🍯'},{name:'کنسروسازی',icon:'🥫'},{name:'میوه‌خشک‌کن',icon:'🍑'},{name:'خشک‌کن میوه',icon:'🍎'},{name:'آب‌میوه‌گیر',icon:'🍊'},{name:'سبزی‌خردکن',icon:'🔪'},{name:'رنده',icon:'🔪'},{name:'آسیاب ادویه',icon:'🌶️'},{name:'هاون',icon:'🏺'},{name:'غذاساز',icon:'🍳'},{name:'همزن برقی',icon:'🍳'},{name:'میکسر',icon:'🍹'},{name:'فرستر',icon:'🍳'},{name:'تخم‌مرغ‌پز',icon:'🥚'},{name:'ساندویچ‌ساز',icon:'🥪'},{name:'وافل‌ساز',icon:'🧇'},{name:'پنکیک‌ساز',icon:'🥞'},{name:'قهوه‌ساز اسپرسو',icon:'☕'},{name:'دستگاه آب معدنی',icon:'💧'},{name:'دستگاه تصفیه هوا',icon:'💨'},{name:'بخور گرم',icon:'💧'},{name:'بخور سرد',icon:'💧'},{name:'دیفیوزر',icon:'🌿'},{name:'شمع عطری',icon:'🕯️'},{name:'خوشبوکننده هوا',icon:'💨'},{name:'ضدحشره الکتریکی',icon:'⚡'},{name:'تله مگس',icon:'🦟'},{name:'تله موش الکتریکی',icon:'⚡'},{name:'دستگاه ضدپشه',icon:'🦟'},{name:'مچ‌بند ضدپشه',icon:'🦟'},{name:'لوسیون دافع حشره',icon:'🧴'},{name:'اسپری حشره‌کش',icon:'☠️'},{name:'آلارم خانگی',icon:'🔔'},{name:'دوربین مداربسته',icon:'📷'},{name:'قفل دیجیتال',icon:'🔒'},{name:'قفل رمز',icon:'🔒'},{name:'زنگ درب',icon:'🔔'},{name:'اینترفون',icon:'📞'},{name:'کارتخوان',icon:'💳'},{name:'صندوق پستی',icon:'📬'},{name:'جاکفشی',icon:'👞'},{name:'جالباسی',icon:'👗'},{name:'رخت‌آویز',icon:'👕'},{name:'کمد لباس',icon:'👗'},{name:'درگاه ذخیره',icon:'💾'},{name:'جاقلمی',icon:'✏️'},{name:'جاکلیدی',icon:'🔑'},{name:'جاسیگاری',icon:'🚬'},{name:'سینی پذیرایی',icon:'🍽️'},{name:'زیرلیوانی',icon:'🍵'},{name:'لیوان',icon:'🥛'},{name:'فنجان',icon:'☕'},{name:'قوری',icon:'☕'},{name:'چایی‌ساز',icon:'☕'},{name:'سماور',icon:'☕'},{name:'پارچ آب',icon:'💧'},{name:'بطری آب',icon:'💧'},{name:'قمقمه فلزی',icon:'🫙'},{name:'ظرف غذا',icon:'🍱'},{name:'ظرف پلاستیکی',icon:'🧴'},{name:'ظرف شیشه‌ای',icon:'🫙'},{name:'بشقاب',icon:'🍽️'},{name:'کاسه',icon:'🥣'},{name:'قاشق',icon:'🥄'},{name:'چنگال',icon:'🍴'},{name:'چاقو آشپزخانه',icon:'🔪'},{name:'قاشق بزرگ',icon:'🥄'},{name:'کفگیر',icon:'🍳'},{name:'چکش گوشت',icon:'🔨'},{name:'سبد نان',icon:'🍞'},{name:'ظرف نمک',icon:'🧂'},{name:'آبچکان',icon:'🚰'},{name:'آبکش',icon:'🚰'},{name:'پارچ چای',icon:'☕'},{name:'جای ادویه',icon:'🌶️'},{name:'جای روغن',icon:'🛢️'},{name:'دستگیره فر',icon:'🍕'},{name:'دستمال آشپزخانه',icon:'🧻'},{name:'روکش آشپزخانه',icon:'🍳'},{name:'وردنه',icon:'🍞'},{name:'قالب کیک',icon:'🎂'},{name:'کاغذ پخت',icon:'📜'},{name:'فر ریو',icon:'🍕'},{name:'دیگ پلوپز',icon:'🍚'},{name:'دیگ فشار',icon:'🍲'},{name:'اسلایسر',icon:'🔪'},{name:'ماهیتابه چدنی',icon:'🍳'},{name:'قابلمه استیل',icon:'🍲'},{name:'سبزی‌خردکن برقی',icon:'🥗'},{name:'تابه چینی',icon:'🍳'},{name:'قابلمه آنتی‌استیک',icon:'🍲'},{name:'آبگوشت‌پز',icon:'🍲'},{name:'بادام‌زمینی‌پز',icon:'🥜'},{name:'پاپکورن‌ساز',icon:'🍿'},{name:'سرویس چای',icon:'☕'},{name:'زعفران‌دان',icon:'🌸'},{name:'دارچین‌دان',icon:'🌿'},{name:'شکردان',icon:'🍬'},{name:'نمک‌دان',icon:'🧂'},{name:'فلفل‌دان',icon:'🌶️'},{name:'روغن‌دان',icon:'🛢️'},{name:'سس‌دان',icon:'🍅'},{name:'جای ترشی',icon:'🫙'}
+    {name:'لپ‌تاپ',icon:'💻'},{name:'گوشی موبایل',icon:'📱'},{name:'ساعت مچی',icon:'⌚'},
+    {name:'عینک',icon:'👓'},{name:'کیف پول',icon:'👛'},{name:'کوله‌پشتی',icon:'🎒'},
+    {name:'چتر',icon:'☂️'},{name:'کارت بانکی',icon:'💳'},{name:'کلید',icon:'🔑'},
+    {name:'خودکار',icon:'🖊️'},{name:'دفترچه',icon:'📓'},{name:'هدفون',icon:'🎧'},
+    {name:'شارژر',icon:'🔌'},{name:'پاوربانک',icon:'🔋'},{name:'قمقمه آب',icon:'💧'},
+    {name:'قیچی',icon:'✂️'},{name:'مداد',icon:'✏️'},{name:'نوار چسب',icon:'🩹'},
+    {name:'تقویم',icon:'📅'},{name:'چراغ‌قوه',icon:'🔦'},{name:'دستمال کاغذی',icon:'🧻'},
+    {name:'ماسک',icon:'😷'},{name:'دستکش',icon:'🧤'},{name:'آینه جیبی',icon:'🪞'},
+    {name:'ادوکلن',icon:'🌹'},{name:'کرم پوست',icon:'🧴'},{name:'ضدآفتاب',icon:'☀️'},
+    {name:'خمیردندان',icon:'🦷'},{name:'مسواک',icon:'🦷'},{name:'دماسنج',icon:'🌡️'}
   ],
   'خوراکی‌ها': [
-    {name:'پیتزا',icon:'🍕'},{name:'بستنی',icon:'🍦'},{name:'همبرگر',icon:'🍔'},{name:'کیک',icon:'🎂'},{name:'سوشی',icon:'🍣'},{name:'پاستا',icon:'🍝'},{name:'تاکو',icon:'🌮'},{name:'ساندویچ',icon:'🥪'},{name:'سالاد',icon:'🥗'},{name:'سوپ',icon:'🍲'},{name:'فریدرایس',icon:'🍛'},{name:'رامن',icon:'🍜'},{name:'دمپلینگ',icon:'🥟'},{name:'اسپرینگ رول',icon:'🥚'},{name:'بریتو',icon:'🌯'},{name:'کباب',icon:'🍢'},{name:'جوجه‌کباب',icon:'🍗'},{name:'استیک',icon:'🥩'},{name:'ماهی سرخ‌شده',icon:'🐟'},{name:'میگو',icon:'🦐'},{name:'خرچنگ',icon:'🦀'},{name:'اختاپوس',icon:'🐙'},{name:'هات‌داگ',icon:'🌭'},{name:'ناگت',icon:'🍗'},{name:'چیپس',icon:'🍟'},{name:'سیب‌زمینی سرخ‌شده',icon:'🍟'},{name:'دونات',icon:'🍩'},{name:'کوکی',icon:'🍪'},{name:'چیزکیک',icon:'🍰'},{name:'براونی',icon:'🍫'},{name:'تیرامیسو',icon:'☕'},{name:'مافین',icon:'🧁'},{name:'کاپ‌کیک',icon:'🧁'},{name:'کروسان',icon:'🥐'},{name:'باگت',icon:'🥖'},{name:'نان تست',icon:'🍞'},{name:'بیگل',icon:'🫓'},{name:'پرتزل',icon:'🥨'},{name:'کرپ',icon:'🫓'},{name:'وافل',icon:'🧇'},{name:'پنکیک',icon:'🥞'},{name:'اومورایس',icon:'🍳'},{name:'بیکن',icon:'🥓'},{name:'ژامبون',icon:'🥓'},{name:'سوسیس',icon:'🌭'},{name:'مرغ بریانی',icon:'🍗'},{name:'اردک بریانی',icon:'🦆'},{name:'ماهی بریان',icon:'🐟'},{name:'گوشت بره',icon:'🐑'},{name:'دنده',icon:'🥩'},{name:'ران مرغ',icon:'🍗'},{name:'سینه مرغ',icon:'🍗'},{name:'فیله‌ماهی',icon:'🐟'},{name:'شنیتسل',icon:'🥩'},{name:'کوفته',icon:'🍲'},{name:'دلمه',icon:'🌿'},{name:'خوراک لوبیا',icon:'🫘'},{name:'عدسی',icon:'🍲'},{name:'قیمه',icon:'🍲'},{name:'قرمه‌سبزی',icon:'🌿'},{name:'کباب‌ کوبیده',icon:'🍢'},{name:'کباب برگ',icon:'🍢'},{name:'چلوکباب',icon:'🍚'},{name:'دیزی',icon:'🍲'},{name:'آبگوشت',icon:'🍲'},{name:'آش رشته',icon:'🍜'},{name:'آش شله‌قلمکار',icon:'🍲'},{name:'پلو با خورشت',icon:'🍚'},{name:'باقالی‌پلو',icon:'🍚'},{name:'زرشک‌پلو',icon:'🍚'},{name:'لوبیاپلو',icon:'🍚'},{name:'عدس‌پلو',icon:'🍚'},{name:'ماهی و برنج',icon:'🐟'},{name:'خوراک مرغ',icon:'🍗'},{name:'مرغ ترش',icon:'🍗'},{name:'فسنجان',icon:'🍲'},{name:'خورش قیمه',icon:'🍲'},{name:'خورش بادمجان',icon:'🍆'},{name:'خورش کرفس',icon:'🌿'},{name:'میرزاقاسمی',icon:'🍆'},{name:'حلیم',icon:'🍲'},{name:'کاچی',icon:'🍲'},{name:'شوله زرد',icon:'🍚'},{name:'زردچوبه‌دار',icon:'🌿'},{name:'قلیه ماهی',icon:'🐟'},{name:'خورش ماهی',icon:'🐟'},{name:'قالبی',icon:'🍚'},{name:'دم‌پختک',icon:'🍚'},{name:'ته‌چین',icon:'🍚'},{name:'بریان',icon:'🍗'},{name:'آلوچه و مرغ',icon:'🍗'},{name:'ترشه تره',icon:'🌿'},{name:'نان سنگک',icon:'🫓'},{name:'نان لواش',icon:'🫓'},{name:'نان بربری',icon:'🫓'},{name:'نان تافتون',icon:'🫓'},{name:'نان سنتی',icon:'🫓'},{name:'نان روستایی',icon:'🍞'},{name:'کلوچه',icon:'🍪'},{name:'باقلوا',icon:'🍯'},{name:'زولبیا',icon:'🍩'},{name:'بامیه',icon:'🍩'},{name:'گوش‌فیل',icon:'🍩'},{name:'حلوا',icon:'🍬'},{name:'شله',icon:'🍲'},{name:'فالوده',icon:'🍧'},{name:'بستنی سنتی',icon:'🍦'},{name:'بستنی گلاب',icon:'🌹'},{name:'آب انبه',icon:'🥭'},{name:'آب هندوانه',icon:'🍉'},{name:'آب لیمو',icon:'🍋'},{name:'آب پرتقال',icon:'🍊'},{name:'آب انار',icon:'🍎'},{name:'آب سیب',icon:'🍎'},{name:'آب هلو',icon:'🍑'},{name:'آب توت‌فرنگی',icon:'🍓'},{name:'اسموتی',icon:'🥤'},{name:'ماء الشعیر',icon:'🍺'},{name:'نوشابه',icon:'🥤'},{name:'دوغ',icon:'🥛'},{name:'چای',icon:'🍵'},{name:'قهوه',icon:'☕'},{name:'اسپرسو',icon:'☕'},{name:'کاپوچینو',icon:'☕'},{name:'لاته',icon:'☕'},{name:'موکا',icon:'☕'},{name:'نسکافه',icon:'☕'},{name:'دمنوش گیاهی',icon:'🌿'},{name:'شیرکاکائو',icon:'🍫'},{name:'شیرموز',icon:'🍌'},{name:'شیرعسل',icon:'🍯'},{name:'بستنی شکلاتی',icon:'🍫'},{name:'بستنی وانیلی',icon:'🍦'},{name:'بستنی توت‌فرنگی',icon:'🍓'},{name:'بستنی پسته',icon:'🌿'},{name:'بستنی نارگیل',icon:'🥥'},{name:'بستنی انبه',icon:'🥭'},{name:'بستنی ساندویچی',icon:'🍦'},{name:'بستنی قیفی',icon:'🍦'},{name:'شکلات تلخ',icon:'🍫'},{name:'شکلات شیری',icon:'🍫'},{name:'شکلات سفید',icon:'🍫'},{name:'کاکائو',icon:'🍫'},{name:'شکلات کیت‌کت',icon:'🍫'},{name:'شکلات توفی',icon:'🍬'},{name:'شکلات نوگا',icon:'🍬'},{name:'آبنبات',icon:'🍬'},{name:'پاستیل',icon:'🍬'},{name:'آدامس',icon:'🍬'},{name:'پفک',icon:'🍟'},{name:'چاکلت چیپس',icon:'🍪'},{name:'وافر',icon:'🧇'},{name:'کیک خیس',icon:'🎂'},{name:'کیک شکلاتی',icon:'🍫'},{name:'کیک یخچالی',icon:'🎂'},{name:'کیک هویج',icon:'🥕'},{name:'کیک لیمو',icon:'🍋'},{name:'کیک نارنجی',icon:'🍊'},{name:'کیک موز',icon:'🍌'},{name:'کیک توت‌فرنگی',icon:'🍓'},{name:'کیک بلوبری',icon:'🫐'},{name:'کیک تولد',icon:'🎂'},{name:'کیک عروسی',icon:'🎂'},{name:'پودینگ',icon:'🍮'},{name:'ژله',icon:'🍮'},{name:'پاناکوتا',icon:'🍮'},{name:'کرم کارامل',icon:'🍮'},{name:'ملبار',icon:'🧁'},{name:'اکلر',icon:'🍩'},{name:'مادلن',icon:'🍪'},{name:'ماکارون',icon:'🌈'},{name:'تارت لیمو',icon:'🍋'},{name:'تارت توت‌فرنگی',icon:'🍓'},{name:'پای سیب',icon:'🍎'},{name:'پای هلو',icon:'🍑'},{name:'پای کدو',icon:'🎃'},{name:'مربا',icon:'🍯'},{name:'عسل',icon:'🍯'},{name:'کره بادام‌زمینی',icon:'🥜'},{name:'نوتلا',icon:'🍫'},{name:'خامه',icon:'🥛'},{name:'شیر',icon:'🥛'},{name:'ماست',icon:'🥛'},{name:'پنیر',icon:'🧀'},{name:'کره',icon:'🧈'},{name:'خامه ترش',icon:'🥛'},{name:'یوگورت',icon:'🥛'},{name:'کفیر',icon:'🥛'},{name:'قیماق',icon:'🥛'},{name:'سرشیر',icon:'🥛'},{name:'شیر گرم',icon:'🥛'},{name:'چای سبز',icon:'🌿'},{name:'چای نعنا',icon:'🌿'},{name:'چای زنجبیل',icon:'🌿'},{name:'چای بابونه',icon:'🌸'},{name:'چای گل محمدی',icon:'🌹'},{name:'چای سیاه',icon:'🍵'},{name:'چای هندی',icon:'🌿'},{name:'ماچا',icon:'🌿'},{name:'چای ارل گری',icon:'🍵'},{name:'آیس تی',icon:'🍵'},{name:'لیموناد',icon:'🍋'},{name:'شربت',icon:'🍹'},{name:'آب معدنی',icon:'💧'},{name:'آب گازدار',icon:'💧'},{name:'آبجو',icon:'🍺'},{name:'شراب قرمز',icon:'🍷'},{name:'شراب سفید',icon:'🍾'},{name:'پیتزا پپرونی',icon:'🍕'},{name:'پیتزا قارچ',icon:'🍄'},{name:'پیتزا مرغ',icon:'🍗'},{name:'پیتزا چهار پنیر',icon:'🧀'},{name:'پیتزا ویژه',icon:'🍕'},{name:'پیتزا سبزیجات',icon:'🥗'},{name:'پیتزا دریایی',icon:'🦐'},{name:'لازانیا',icon:'🍝'},{name:'پاستا کاربونارا',icon:'🍝'},{name:'پاستا بولونز',icon:'🍝'},{name:'ریزوتو',icon:'🍚'},{name:'پاستا آلفردو',icon:'🍝'},{name:'گنوچی',icon:'🍝'},{name:'تورتلینی',icon:'🍝'},{name:'رویاللینی',icon:'🍝'},{name:'پنه',icon:'🍝'},{name:'اسپاگتی',icon:'🍝'},{name:'فتوچینی',icon:'🍝'},{name:'لینگوینی',icon:'🍝'},{name:'پاپاردله',icon:'🍝'},{name:'گراتن',icon:'🍲'},{name:'کیش',icon:'🥚'},{name:'سالاد سزار',icon:'🥗'},{name:'سالاد فصل',icon:'🥗'},{name:'سالاد اولیویه',icon:'🥗'},{name:'سالاد شیرازی',icon:'🥗'},{name:'سالاد ماکارونی',icon:'🥗'},{name:'سالاد لوبیا',icon:'🫘'},{name:'سالاد ذرت',icon:'🌽'},{name:'سالاد یونانی',icon:'🥗'},{name:'پیروگی',icon:'🥟'},{name:'ماندو',icon:'🥟'},{name:'گیوزا',icon:'🥟'},{name:'خائو منتو',icon:'🥟'},{name:'باو',icon:'🥐'},{name:'تمپورا',icon:'🍤'},{name:'اونیگیری',icon:'🍙'},{name:'مکی',icon:'🍱'},{name:'ترماکی',icon:'🍣'},{name:'ساشیمی',icon:'🐟'},{name:'میسو سوپ',icon:'🍜'},{name:'تونکاتسو',icon:'🥩'},{name:'یاکیسوبا',icon:'🍜'},{name:'تاکویاکی',icon:'🐙'},{name:'اوکونومیاکی',icon:'🥞'},{name:'کاریاگه',icon:'🍗'},{name:'ماتچا آیسکریم',icon:'🍦'},{name:'مورینگا',icon:'🌿'},{name:'پاد تای',icon:'🍜'},{name:'توم یام',icon:'🍲'},{name:'گرین کاری',icon:'🌿'},{name:'ردکاری',icon:'🌶️'},{name:'ماساله دوسا',icon:'🫓'},{name:'بیریانی',icon:'🍚'},{name:'نان هندی',icon:'🫓'},{name:'داهل',icon:'🫘'},{name:'سموسه',icon:'🥟'},{name:'چاتنی',icon:'🌿'},{name:'تاندوری مرغ',icon:'🍗'},{name:'پنیر تیکا ماساله',icon:'🧀'},{name:'نان پیتا',icon:'🫓'},{name:'هوموس',icon:'🫘'},{name:'فلافل',icon:'🫘'},{name:'تبوله',icon:'🌿'},{name:'شاورما',icon:'🌯'},{name:'کباب عربی',icon:'🍢'},{name:'کوزی',icon:'🍲'},{name:'مانتی',icon:'🥟'},{name:'بورک',icon:'🥐'},{name:'باقلاوا',icon:'🍯'},{name:'کنافه',icon:'🍯'},{name:'لقمه القاضی',icon:'🍩'},{name:'ام‌علی',icon:'🍮'},{name:'بسبوسه',icon:'🍬'},{name:'لولو',icon:'🥟'},{name:'کوئسادیا',icon:'🌮'},{name:'ناچو',icon:'🌽'},{name:'گواکامولی',icon:'🥑'},{name:'سالسا',icon:'🍅'},{name:'انچیلادا',icon:'🌮'},{name:'فاهیتا',icon:'🌮'},{name:'چیلی کان کارن',icon:'🌶️'},{name:'گامبو',icon:'🍲'},{name:'جامبالایا',icon:'🍲'},{name:'مک‌اندچیز',icon:'🧀'},{name:'کلاب ساندویچ',icon:'🥪'},{name:'BLT',icon:'🥪'},{name:'کوکوی سبزی',icon:'🥚'},{name:'کوکوی سیب‌زمینی',icon:'🥚'},{name:'نیمرو',icon:'🥚'},{name:'تخم‌مرغ آبپز',icon:'🥚'},{name:'تخم‌مرغ بنه‌دیکت',icon:'🥚'},{name:'اسکرمبل',icon:'🥚'},{name:'اندیوی مرغ',icon:'🍗'},{name:'مرغ خامه‌ای',icon:'🍗'},{name:'مرغ و قارچ',icon:'🍗'},{name:'میگو پروانه',icon:'🦐'},{name:'کالماری سرخ‌شده',icon:'🦑'},{name:'خرچنگ برشته',icon:'🦀'},{name:'صدف',icon:'🐚'},{name:'لابستر',icon:'🦞'},{name:'ماهی‌تون',icon:'🐟'},{name:'سالمون',icon:'🐟'},{name:'کاد',icon:'🐟'},{name:'تیلاپیا',icon:'🐟'},{name:'هالیبات',icon:'🐟'},{name:'ماهی قزل‌آلا',icon:'🐟'},{name:'ماهی کپور',icon:'🐟'},{name:'ماهی شوریده',icon:'🐟'},{name:'ماهی طلایی',icon:'🐟'},{name:'ماهی خال‌مخالی',icon:'🐟'},{name:'ماهی سفید',icon:'🐟'},{name:'گوجه',icon:'🍅'},{name:'کاهو',icon:'🥬'},{name:'خیار',icon:'🥒'},{name:'هویج',icon:'🥕'},{name:'ذرت',icon:'🌽'},{name:'بادمجان',icon:'🍆'},{name:'فلفل دلمه',icon:'🫑'},{name:'پیاز',icon:'🧅'},{name:'سیر',icon:'🧄'},{name:'زنجبیل',icon:'🌶️'},{name:'زردچوبه',icon:'🌿'},{name:'دارچین',icon:'🌿'},{name:'فلفل سیاه',icon:'🌶️'},{name:'پنیر فتا',icon:'🧀'},{name:'موتزارلا',icon:'🧀'},{name:'پارمزان',icon:'🧀'},{name:'چدار',icon:'🧀'},{name:'گودا',icon:'🧀'},{name:'ریکوتا',icon:'🧀'},{name:'ماسکارپونه',icon:'🧀'},{name:'بری',icon:'🧀'},{name:'کاممبر',icon:'🧀'},{name:'ام‌منتال',icon:'🧀'},{name:'روکفورت',icon:'🧀'},{name:'پرووولونه',icon:'🧀'},{name:'گرویر',icon:'🧀'},{name:'پنیر لیقوان',icon:'🧀'},{name:'لیمو ترش',icon:'🍋'},{name:'انبه',icon:'🥭'},{name:'آناناس',icon:'🍍'},{name:'نارگیل',icon:'🥥'},{name:'موز',icon:'🍌'},{name:'سیب',icon:'🍎'},{name:'هلو',icon:'🍑'},{name:'توت‌فرنگی',icon:'🍓'},{name:'انگور',icon:'🍇'},{name:'خرمالو',icon:'🍂'},{name:'گلابی',icon:'🍐'},{name:'گیلاس',icon:'🍒'},{name:'خوخ',icon:'🍑'},{name:'تمشک',icon:'🍓'},{name:'بلوبری',icon:'🫐'},{name:'آلو',icon:'🍑'},{name:'انجیر',icon:'🍈'},{name:'انار',icon:'🍎'},{name:'پرتقال',icon:'🍊'},{name:'نارنگی',icon:'🍊'},{name:'گریپ‌فروت',icon:'🍊'},{name:'لیمو',icon:'🍋'},{name:'خیارشور',icon:'🥒'},{name:'ترشی',icon:'🫙'},{name:'زیتون',icon:'🫒'},{name:'آووکادو',icon:'🥑'},{name:'آرتیشو',icon:'🌿'},{name:'مارچوبه',icon:'🌿'},{name:'بروکلی',icon:'🥦'},{name:'گل‌کلم',icon:'🥦'},{name:'کلم بروکسل',icon:'🥦'},{name:'کلم پیچ',icon:'🥬'},{name:'اسفناج',icon:'🥬'},{name:'نخودفرنگی',icon:'🌿'},{name:'لوبیا سبز',icon:'🫘'},{name:'کدو',icon:'🥒'},{name:'کدوتنبل',icon:'🎃'},{name:'سیب‌زمینی',icon:'🥔'},{name:'سیب‌زمینی شیرین',icon:'🍠'},{name:'چغندر',icon:'🌿'},{name:'رادیش',icon:'🌿'},{name:'تربچه',icon:'🌿'},{name:'عدس',icon:'🫘'},{name:'لوبیا قرمز',icon:'🫘'},{name:'لوبیا چیتی',icon:'🫘'},{name:'نخود',icon:'🫘'},{name:'ماش',icon:'🫘'},{name:'سویا',icon:'🫘'},{name:'توفو',icon:'🧀'},{name:'تمپه',icon:'🫘'},{name:'سیتان',icon:'🌾'},{name:'جو دو سر',icon:'🌾'},{name:'گندم',icon:'🌾'},{name:'برنج',icon:'🍚'},{name:'گندم‌سیاه',icon:'🌾'},{name:'کینوا',icon:'🌾'},{name:'کوسکوس',icon:'🍚'},{name:'پولنتا',icon:'🌽'},{name:'ارزن',icon:'🌾'},{name:'جو پرک',icon:'🌾'},{name:'بلغور',icon:'🌾'},{name:'آرد برنج',icon:'🍚'},{name:'نشاسته',icon:'⬜'},{name:'شکر',icon:'🍬'},{name:'عسل خام',icon:'🍯'},{name:'شیره انگور',icon:'🍇'},{name:'دیبس',icon:'🍯'},{name:'ملاس',icon:'🍯'},{name:'روغن زیتون',icon:'🫒'},{name:'روغن نارگیل',icon:'🥥'},{name:'روغن کنجد',icon:'🌿'},{name:'روغن آفتابگردان',icon:'🌻'},{name:'سرکه سیب',icon:'🍎'},{name:'سویا سس',icon:'🌿'},{name:'سس تریاکی',icon:'🌿'},{name:'سس تارتار',icon:'🐟'},{name:'سس مایونز',icon:'🥚'},{name:'سس کچاپ',icon:'🍅'},{name:'سس بشامل',icon:'🥛'},{name:'سس پستو',icon:'🌿'},{name:'سس آلفردو',icon:'🧀'},{name:'سس هویل',icon:'🥚'},{name:'هاریسا',icon:'🌶️'},{name:'سس سریراچا',icon:'🌶️'},{name:'سس تاباسکو',icon:'🌶️'},{name:'سس باربیکیو',icon:'🔥'},{name:'سس تئری‌یاکی',icon:'🌿'},{name:'سس نان',icon:'🍞'},{name:'سس قارچ',icon:'🍄'},{name:'سس گوجه',icon:'🍅'}
+    {name:'پیتزا',icon:'🍕'},{name:'بستنی',icon:'🍦'},{name:'همبرگر',icon:'🍔'},
+    {name:'کیک',icon:'🎂'},{name:'سوشی',icon:'🍣'},{name:'پاستا',icon:'🍝'},
+    {name:'تاکو',icon:'🌮'},{name:'ساندویچ',icon:'🥪'},{name:'سالاد',icon:'🥗'},
+    {name:'سوپ',icon:'🍲'},{name:'رامن',icon:'🍜'},{name:'دمپلینگ',icon:'🥟'},
+    {name:'کباب کوبیده',icon:'🍢'},{name:'جوجه‌کباب',icon:'🍗'},{name:'چیپس',icon:'🍟'},
+    {name:'دونات',icon:'🍩'},{name:'کوکی',icon:'🍪'},{name:'براونی',icon:'🍫'},
+    {name:'کروسان',icon:'🥐'},{name:'وافل',icon:'🧇'},{name:'پنکیک',icon:'🥞'},
+    {name:'قرمه‌سبزی',icon:'🌿'},{name:'آش رشته',icon:'🍜'},{name:'زرشک‌پلو',icon:'🍚'},
+    {name:'فسنجان',icon:'🍲'},{name:'باقلوا',icon:'🍯'},{name:'فالوده',icon:'🍧'},
+    {name:'شکلات تلخ',icon:'🍫'},{name:'نان سنگک',icon:'🫓'},{name:'دوغ',icon:'🥛'}
   ],
   'شغل‌ها': [
-    {name:'دکتر',icon:'👨‍⚕️'},{name:'معلم',icon:'👨‍🏫'},{name:'پلیس',icon:'👮'},{name:'آشپز',icon:'👨‍🍳'},{name:'خلبان',icon:'👨‍✈️'},{name:'مهندس',icon:'👷'},{name:'وکیل',icon:'⚖️'},{name:'پرستار',icon:'👩‍⚕️'},{name:'فروشنده',icon:'🛒'},{name:'راننده',icon:'🚗'},{name:'معمار',icon:'📐'},{name:'حسابدار',icon:'💰'},{name:'برنامه‌نویس',icon:'💻'},{name:'روزنامه‌نگار',icon:'📰'},{name:'کارگردان',icon:'🎬'},{name:'بازیگر',icon:'🎭'},{name:'خواننده',icon:'🎤'},{name:'ورزشکار',icon:'⚽'},{name:'نقاش',icon:'🎨'},{name:'مجسمه‌ساز',icon:'🏺'},{name:'عکاس',icon:'📷'},{name:'طراح',icon:'✏️'},{name:'مشاور',icon:'💼'},{name:'روانپزشک',icon:'🧠'},{name:'روانشناس',icon:'🧠'},{name:'دندانپزشک',icon:'🦷'},{name:'داروساز',icon:'💊'},{name:'فیزیوتراپیست',icon:'🏋️'},{name:'کاردرمانگر',icon:'🤸'},{name:'ماما',icon:'👶'},{name:'جراح',icon:'🔪'},{name:'اورژانس',icon:'🚑'},{name:'آتش‌نشان',icon:'🚒'},{name:'سرباز',icon:'⚔️'},{name:'افسر',icon:'🎖️'},{name:'کارآگاه',icon:'🔍'},{name:'قاضی',icon:'⚖️'},{name:'دادستان',icon:'📜'},{name:'نماینده مجلس',icon:'🏛️'},{name:'استاندار',icon:'🏛️'},{name:'وزیر',icon:'🏛️'},{name:'سفیر',icon:'🤝'},{name:'دیپلمات',icon:'🤝'},{name:'روحانی',icon:'🕌'},{name:'نویسنده',icon:'📖'},{name:'شاعر',icon:'📝'},{name:'مترجم',icon:'🌐'},{name:'ویراستار',icon:'✂️'},{name:'ناشر',icon:'📚'},{name:'کتابدار',icon:'📚'},{name:'بایگان',icon:'📁'},{name:'آمارشناس',icon:'📊'},{name:'محقق',icon:'🔬'},{name:'دانشمند',icon:'🧪'},{name:'فیزیکدان',icon:'⚛️'},{name:'شیمیدان',icon:'⚗️'},{name:'زیست‌شناس',icon:'🌱'},{name:'ریاضیدان',icon:'📐'},{name:'اقتصاددان',icon:'💹'},{name:'جامعه‌شناس',icon:'👥'},{name:'تاریخدان',icon:'📜'},{name:'باستان‌شناس',icon:'⛏️'},{name:'جغرافیدان',icon:'🗺️'},{name:'هواشناس',icon:'🌤️'},{name:'زمین‌شناس',icon:'⛏️'},{name:'اخترشناس',icon:'🔭'},{name:'فضانورد',icon:'🚀'},{name:'خلبان هواپیما',icon:'✈️'},{name:'ناخدا',icon:'⚓'},{name:'ملوان',icon:'⚓'},{name:'لوکوموتیوران',icon:'🚂'},{name:'مکانیک',icon:'🔧'},{name:'الکتریکی',icon:'⚡'},{name:'لوله‌کش',icon:'🔧'},{name:'نجار',icon:'🪚'},{name:'آهنگر',icon:'⚒️'},{name:'جوشکار',icon:'🔩'},{name:'سنگ‌کار',icon:'⛏️'},{name:'گچ‌کار',icon:'🏗️'},{name:'رنگ‌کار',icon:'🎨'},{name:'برق‌کار',icon:'⚡'},{name:'تأسیساتی',icon:'🔧'},{name:'آسانسورساز',icon:'🛗'},{name:'شیشه‌بر',icon:'🪟'},{name:'کاشی‌کار',icon:'🏗️'},{name:'سرامیک‌کار',icon:'🏗️'},{name:'چینی‌ساز',icon:'🏺'},{name:'سفالگر',icon:'🏺'},{name:'صنعتگر',icon:'⚙️'},{name:'خیاط',icon:'🧵'},{name:'کفاش',icon:'👞'},{name:'چرم‌دوز',icon:'👜'},{name:'فرش‌باف',icon:'🧶'},{name:'بافنده',icon:'🧶'},{name:'قالیباف',icon:'🧶'},{name:'پارچه‌باف',icon:'🧶'},{name:'گلیم‌باف',icon:'🧶'},{name:'زرگر',icon:'💍'},{name:'جواهرساز',icon:'💎'},{name:'ساعت‌ساز',icon:'⌚'},{name:'عینک‌ساز',icon:'👓'},{name:'دندان‌ساز',icon:'🦷'},{name:'کفاش',icon:'👟'},{name:'باغبان',icon:'🌱'},{name:'کشاورز',icon:'🌾'},{name:'دامدار',icon:'🐄'},{name:'پرورش‌دهنده',icon:'🐔'},{name:'ماهیگیر',icon:'🐟'},{name:'شکارچی',icon:'🦌'},{name:'جنگلبان',icon:'🌲'},{name:'محیط‌بان',icon:'🌿'},{name:'آبیاری‌کار',icon:'💧'},{name:'گلخانه‌دار',icon:'🪴'},{name:'سبزیکار',icon:'🥬'},{name:'صیاد',icon:'🎣'},{name:'رانندگان تاکسی',icon:'🚕'},{name:'اوبر',icon:'🚗'},{name:'راننده کامیون',icon:'🚛'},{name:'موتوری',icon:'🏍️'},{name:'پیک',icon:'📦'},{name:'باربر',icon:'🏋️'},{name:'انباردار',icon:'📦'},{name:'مسئول فروشگاه',icon:'🏪'},{name:'صندوقدار',icon:'💳'},{name:'حراست',icon:'🔒'},{name:'نگهبان',icon:'🔒'},{name:'پورتر',icon:'🏨'},{name:'پیشخدمت',icon:'🍽️'},{name:'بارمن',icon:'🍸'},{name:'سومولیه',icon:'🍷'},{name:'کیک‌پز',icon:'🎂'},{name:'نانوا',icon:'🍞'},{name:'قناد',icon:'🍫'},{name:'آبدارچی',icon:'☕'},{name:'بوفه‌چی',icon:'🥪'},{name:'مسئول رستوران',icon:'🍽️'},{name:'آبدارباشی',icon:'☕'},{name:'جمعدار',icon:'📦'},{name:'کارمند اداری',icon:'💼'},{name:'منشی',icon:'📞'},{name:'دبیر',icon:'📝'},{name:'مسئول روابط عمومی',icon:'📢'},{name:'متخصص بازاریابی',icon:'📈'},{name:'تبلیغاتچی',icon:'📣'},{name:'مدیر',icon:'👔'},{name:'مدیرعامل',icon:'🏢'},{name:'رئیس',icon:'🏛️'},{name:'شریک تجاری',icon:'🤝'},{name:'کارآفرین',icon:'💡'},{name:'سرمایه‌گذار',icon:'💰'},{name:'تحلیلگر مالی',icon:'💹'},{name:'کارگزار',icon:'📈'},{name:'بیمه‌گر',icon:'📋'},{name:'ارزیاب',icon:'📊'},{name:'بازرس',icon:'🔍'},{name:'حسابرس',icon:'📋'},{name:'مشاور مالیاتی',icon:'💰'},{name:'نماینده بیمه',icon:'📋'},{name:'مسئول بانک',icon:'🏦'},{name:'صرافی',icon:'💱'},{name:'گمرکی',icon:'✈️'},{name:'مامور مالیات',icon:'💰'},{name:'ارزیاب دارایی',icon:'🏠'},{name:'مشاور ملکی',icon:'🏠'},{name:'مسئول ثبت اسناد',icon:'📜'},{name:'نقشه‌بردار',icon:'📐'},{name:'طراح شهری',icon:'🏙️'},{name:'برنامه‌ریز شهری',icon:'🏙️'},{name:'مسئول شهرداری',icon:'🏛️'},{name:'آتش‌نشانی',icon:'🚒'},{name:'اورژانس اجتماعی',icon:'🚑'},{name:'بهداشت عمومی',icon:'🏥'},{name:'کنترل بیماری',icon:'🏥'},{name:'بهداشت محیط',icon:'🌿'},{name:'کارشناس تغذیه',icon:'🥗'},{name:'متخصص رژیم',icon:'🥗'},{name:'مربی ورزش',icon:'🏋️'},{name:'مربی یوگا',icon:'🧘'},{name:'مربی مدیتیشن',icon:'🧘'},{name:'مربی شنا',icon:'🏊'},{name:'مربی فوتبال',icon:'⚽'},{name:'مربی بسکتبال',icon:'🏀'},{name:'مربی تنیس',icon:'🎾'},{name:'مربی گلف',icon:'⛳'},{name:'مربی کاراته',icon:'🥋'},{name:'مربی جودو',icon:'🥋'},{name:'مربی آموزش رانندگی',icon:'🚗'},{name:'معلم موسیقی',icon:'🎵'},{name:'معلم زبان',icon:'🌐'},{name:'معلم نقاشی',icon:'🎨'},{name:'معلم ریاضی',icon:'📐'},{name:'معلم علوم',icon:'🔬'},{name:'مربی طراحی',icon:'✏️'},{name:'طراح گرافیک',icon:'🎨'},{name:'طراح وب',icon:'💻'},{name:'توسعه‌دهنده نرم‌افزار',icon:'💻'},{name:'متخصص شبکه',icon:'📡'},{name:'متخصص امنیت سایبری',icon:'🔒'},{name:'تحلیلگر داده',icon:'📊'},{name:'هوش مصنوعی',icon:'🤖'},{name:'یادگیری ماشین',icon:'🤖'},{name:'مهندس بلاک‌چین',icon:'⛓️'},{name:'توسعه‌دهنده بازی',icon:'🎮'},{name:'طراح UX',icon:'💻'},{name:'طراح UI',icon:'💻'},{name:'تستر نرم‌افزار',icon:'🔍'},{name:'مدیر محصول',icon:'📋'},{name:'اسکرام‌مستر',icon:'📋'},{name:'دواپس',icon:'⚙️'},{name:'مهندس ابر',icon:'☁️'},{name:'مدیر پایگاه داده',icon:'💾'},{name:'متخصص SEO',icon:'🔍'},{name:'مدیر شبکه‌های اجتماعی',icon:'📱'},{name:'تولیدکننده محتوا',icon:'📹'},{name:'ویدئوگرافر',icon:'🎥'},{name:'مونتاژگر ویدیو',icon:'✂️'},{name:'پادکستر',icon:'🎙️'},{name:'استریمر',icon:'📺'},{name:'یوتیوبر',icon:'📹'},{name:'اینفلوئنسر',icon:'📱'},{name:'مدل',icon:'👗'},{name:'فتوگرافر مد',icon:'📷'},{name:'طراح لباس',icon:'👗'},{name:'استایلیست',icon:'💄'},{name:'آرایشگر',icon:'💇'},{name:'مانیکوریست',icon:'💅'},{name:'زیباشناس',icon:'💄'},{name:'متخصص مو',icon:'💇'},{name:'آرایشگر عروس',icon:'👰'},{name:'طراح گل',icon:'🌸'},{name:'گل‌فروش',icon:'💐'},{name:'پرستار کودک',icon:'👶'},{name:'مربی کودک',icon:'👶'},{name:'آموزگار پیش‌دبستانی',icon:'🎒'},{name:'آسیب‌شناس گفتار',icon:'🗣️'},{name:'شنوایی‌سنج',icon:'👂'},{name:'بینایی‌سنج',icon:'👁️'},{name:'پزشک عمومی',icon:'👨‍⚕️'},{name:'متخصص قلب',icon:'❤️'},{name:'متخصص مغز',icon:'🧠'},{name:'متخصص چشم',icon:'👁️'},{name:'متخصص گوش‌وحلق‌وبینی',icon:'👂'},{name:'متخصص پوست',icon:'🩺'},{name:'متخصص کودکان',icon:'👶'},{name:'متخصص داخلی',icon:'🏥'},{name:'متخصص بیهوشی',icon:'💉'},{name:'رادیولوژیست',icon:'🔬'},{name:'پاتولوژیست',icon:'🔬'},{name:'ژنتیک‌شناس',icon:'🧬'},{name:'متخصص آلرژی',icon:'🤧'},{name:'روانپرستار',icon:'🧠'},{name:'مددکار اجتماعی',icon:'🤝'},{name:'جرم‌شناس',icon:'🔍'},{name:'جنائی',icon:'🔍'},{name:'اصلاح‌وتربیت',icon:'⚖️'},{name:'ندامتگاه',icon:'🔒'},{name:'مسئول بهزیستی',icon:'🤝'},{name:'مشاور تحصیلی',icon:'📚'},{name:'کارشناس منابع انسانی',icon:'👥'},{name:'مسئول استخدام',icon:'📋'},{name:'مربی حرفه‌ای',icon:'💼'},{name:'اقتصاددان',icon:'💹'},{name:'تحلیلگر بازار',icon:'📈'},{name:'استراتژیست',icon:'♟️'},{name:'لابی‌ست',icon:'🏛️'},{name:'مشاور سیاسی',icon:'🏛️'},{name:'تحلیلگر سیاسی',icon:'📰'},{name:'گزارشگر',icon:'📰'},{name:'خبرنگار',icon:'📷'},{name:'مجری',icon:'📺'},{name:'گوینده',icon:'📻'},{name:'دوبلور',icon:'🎤'},{name:'منتقد فیلم',icon:'🎬'},{name:'منتقد ادبی',icon:'📚'},{name:'کیوریتور',icon:'🖼️'},{name:'مدیر موزه',icon:'🏛️'},{name:'مرمتگر',icon:'⚒️'},{name:'باستان‌شناس',icon:'⛏️'},{name:'موزیسین',icon:'🎵'},{name:'نوازنده',icon:'🎻'},{name:'رهبر ارکستر',icon:'🎼'},{name:'آهنگساز',icon:'🎵'},{name:'ترانه‌سرا',icon:'✏️'},{name:'دی‌جی',icon:'🎧'},{name:'پروموتر',icon:'📣'},{name:'برنامه‌ریز رویداد',icon:'📅'},{name:'مجری برنامه',icon:'🎤'},{name:'کمدین',icon:'😂'},{name:'بازیگر تئاتر',icon:'🎭'},{name:'رقصنده',icon:'💃'},{name:'کوریوگراف',icon:'💃'},{name:'سیرک‌باز',icon:'🎪'},{name:'شعبده‌باز',icon:'🎩'},{name:'خوش‌بین',icon:'🎩'},{name:'نقال',icon:'📖'},{name:'گفتگوی عمومی',icon:'🗣️'},{name:'مدرس رباتیک',icon:'🤖'},{name:'مدرس کدنویسی',icon:'💻'},{name:'راهنمای تور',icon:'🗺️'},{name:'مدیر هتل',icon:'🏨'},{name:'کنسیرژ',icon:'🏨'},{name:'نظافتچی',icon:'🧹'},{name:'آشپزباشی',icon:'👨‍🍳'},{name:'شیرینی‌پز',icon:'🍰'},{name:'پیتزامیکر',icon:'🍕'},{name:'سوشی‌شف',icon:'🍣'},{name:'کترینگ',icon:'🍽️'},{name:'مسئول تدارکات',icon:'📦'},{name:'خریدار',icon:'🛒'},{name:'لجستیک',icon:'🚛'},{name:'انبارداری',icon:'📦'},{name:'بسته‌بندی',icon:'📦'},{name:'فرستنده',icon:'📬'},{name:'پیک موتوری',icon:'🏍️'},{name:'پستچی',icon:'📬'},{name:'پیام‌رسان',icon:'📬'},{name:'کارگر ساختمان',icon:'🏗️'},{name:'لیفتراکی',icon:'🏋️'},{name:'جرثقیل‌باز',icon:'🏗️'},{name:'مسئول ایمنی',icon:'⛑️'},{name:'بازرس ایمنی',icon:'🔍'},{name:'کارشناس محیط زیست',icon:'🌿'},{name:'اکولوژیست',icon:'🌿'},{name:'هیدرولوژیست',icon:'💧'},{name:'متخصص آب و هوا',icon:'🌤️'},{name:'زلزله‌شناس',icon:'🌍'},{name:'آتشفشان‌شناس',icon:'🌋'}
+    {name:'دکتر',icon:'👨‍⚕️'},{name:'معلم',icon:'👨‍🏫'},{name:'پلیس',icon:'👮'},
+    {name:'آشپز',icon:'👨‍🍳'},{name:'خلبان',icon:'👨‍✈️'},{name:'مهندس',icon:'👷'},
+    {name:'وکیل',icon:'⚖️'},{name:'پرستار',icon:'👩‍⚕️'},{name:'فروشنده',icon:'🛒'},
+    {name:'راننده',icon:'🚗'},{name:'معمار',icon:'📐'},{name:'حسابدار',icon:'💰'},
+    {name:'برنامه‌نویس',icon:'💻'},{name:'روزنامه‌نگار',icon:'📰'},{name:'کارگردان',icon:'🎬'},
+    {name:'بازیگر',icon:'🎭'},{name:'خواننده',icon:'🎤'},{name:'ورزشکار',icon:'⚽'},
+    {name:'نقاش',icon:'🎨'},{name:'عکاس',icon:'📷'},{name:'دندانپزشک',icon:'🦷'},
+    {name:'داروساز',icon:'💊'},{name:'آتش‌نشان',icon:'🚒'},{name:'سرباز',icon:'⚔️'},
+    {name:'کارآگاه',icon:'🔍'},{name:'قاضی',icon:'⚖️'},{name:'نویسنده',icon:'📖'},
+    {name:'مکانیک',icon:'🔧'},{name:'باغبان',icon:'🌱'},{name:'کشاورز',icon:'🌾'}
   ],
   'مکان‌ها': [
-    {name:'مدرسه',icon:'🏫'},{name:'بیمارستان',icon:'🏥'},{name:'فرودگاه',icon:'✈️'},{name:'رستوران',icon:'🍽️'},{name:'پارک',icon:'🌳'},{name:'کتابخانه',icon:'📚'},{name:'موزه',icon:'🏛️'},{name:'سینما',icon:'🎬'},{name:'ورزشگاه',icon:'🏟️'},{name:'بانک',icon:'🏦'},{name:'پاساژ',icon:'🛍️'},{name:'سوپرمارکت',icon:'🛒'},{name:'داروخانه',icon:'💊'},{name:'آرایشگاه',icon:'💇'},{name:'نانوایی',icon:'🍞'},{name:'قنادی',icon:'🍰'},{name:'کافه',icon:'☕'},{name:'کافه‌رستوران',icon:'🍽️'},{name:'فست‌فود',icon:'🍔'},{name:'پیتزافروشی',icon:'🍕'},{name:'بستنی‌فروشی',icon:'🍦'},{name:'میوه‌فروشی',icon:'🍎'},{name:'گل‌فروشی',icon:'💐'},{name:'عطاری',icon:'🌿'},{name:'کتاب‌فروشی',icon:'📚'},{name:'لوازم تحریر',icon:'✏️'},{name:'مبل‌فروشی',icon:'🪑'},{name:'فروشگاه لباس',icon:'👗'},{name:'کفش‌فروشی',icon:'👟'},{name:'طلافروشی',icon:'💍'},{name:'الکترونیک‌فروشی',icon:'💻'},{name:'موبایل‌فروشی',icon:'📱'},{name:'آهن‌آلات',icon:'⚙️'},{name:'سخت‌افزار',icon:'🔧'},{name:'رنگ‌فروشی',icon:'🎨'},{name:'ساختمانی',icon:'🏗️'},{name:'لوازم خانگی',icon:'🏠'},{name:'سرویس‌دهنده اینترنت',icon:'📡'},{name:'دفتر مخابرات',icon:'📞'},{name:'پست',icon:'📬'},{name:'گمرک',icon:'✈️'},{name:'اداره پلیس',icon:'👮'},{name:'دادگاه',icon:'⚖️'},{name:'دادگستری',icon:'⚖️'},{name:'شهرداری',icon:'🏛️'},{name:'استانداری',icon:'🏛️'},{name:'وزارتخانه',icon:'🏛️'},{name:'سفارتخانه',icon:'🏛️'},{name:'ایستگاه قطار',icon:'🚂'},{name:'مترو',icon:'🚇'},{name:'ایستگاه اتوبوس',icon:'🚌'},{name:'ترمینال',icon:'🚌'},{name:'پایانه',icon:'🚢'},{name:'بندر',icon:'⚓'},{name:'دریاچه',icon:'🌊'},{name:'ساحل',icon:'🏖️'},{name:'کوه',icon:'⛰️'},{name:'جنگل',icon:'🌲'},{name:'بیابان',icon:'🏜️'},{name:'دشت',icon:'🌾'},{name:'مزرعه',icon:'🚜'},{name:'باغ',icon:'🌳'},{name:'باغ‌وحش',icon:'🦁'},{name:'پارک ملی',icon:'🌿'},{name:'رزرو طبیعی',icon:'🌿'},{name:'پارک آبی',icon:'💧'},{name:'شهربازی',icon:'🎡'},{name:'سیرک',icon:'🎪'},{name:'میدان',icon:'🏙️'},{name:'مرکز خرید',icon:'🛍️'},{name:'بازار سنتی',icon:'🛒'},{name:'بازار هفتگی',icon:'🛒'},{name:'حراجی',icon:'🏷️'},{name:'پادگان',icon:'⚔️'},{name:'پایگاه نظامی',icon:'⚔️'},{name:'زندان',icon:'🔒'},{name:'مرز',icon:'🗺️'},{name:'گذرگاه',icon:'🗺️'},{name:'ایست بازرسی',icon:'🚦'},{name:'راهداری',icon:'🛣️'},{name:'آزادراه',icon:'🛣️'},{name:'پل',icon:'🌉'},{name:'تونل',icon:'🚇'},{name:'میدان ورود',icon:'🏙️'},{name:'بلوار',icon:'🏙️'},{name:'کوچه',icon:'🏘️'},{name:'محله قدیمی',icon:'🏘️'},{name:'روستا',icon:'🏡'},{name:'شهرک مسکونی',icon:'🏘️'},{name:'آپارتمان',icon:'🏢'},{name:'برج',icon:'🏙️'},{name:'هتل',icon:'🏨'},{name:'متل',icon:'🏨'},{name:'مسافرخانه',icon:'🏠'},{name:'بوتیک هتل',icon:'🏨'},{name:'خوابگاه',icon:'🛏️'},{name:'کمپ',icon:'⛺'},{name:'کلبه جنگلی',icon:'🌲'},{name:'ویلا',icon:'🏖️'},{name:'استراحتگاه',icon:'🏖️'},{name:'اقامتگاه سنتی',icon:'🏡'},{name:'چادر عشایری',icon:'⛺'},{name:'خانه سنتی',icon:'🏡'},{name:'عمارت قدیمی',icon:'🏛️'},{name:'قلعه',icon:'🏰'},{name:'کاخ',icon:'🏰'},{name:'کاخ موزه',icon:'🏛️'},{name:'قلعه تاریخی',icon:'🏰'},{name:'برج تاریخی',icon:'🗼'},{name:'میراث جهانی',icon:'🏛️'},{name:'باستانی',icon:'🏺'},{name:'تپه باستانی',icon:'⛏️'},{name:'گورستان تاریخی',icon:'⚰️'},{name:'مسجد',icon:'🕌'},{name:'کلیسا',icon:'⛪'},{name:'کنیسه',icon:'✡️'},{name:'معبد',icon:'🛕'},{name:'آتشکده',icon:'🔥'},{name:'حرم',icon:'🕌'},{name:'امامزاده',icon:'🕌'},{name:'حسینیه',icon:'🕌'},{name:'تکیه',icon:'🕌'},{name:'خانقاه',icon:'🕌'},{name:'مدرسه دینی',icon:'🕌'},{name:'دانشگاه',icon:'🎓'},{name:'دانشکده',icon:'🎓'},{name:'مدرسه فنی',icon:'🔧'},{name:'آموزشگاه',icon:'📚'},{name:'مدرسه زبان',icon:'🌐'},{name:'مدرسه هنر',icon:'🎨'},{name:'مدرسه موسیقی',icon:'🎵'},{name:'دبیرستان',icon:'🏫'},{name:'دبستان',icon:'🏫'},{name:'مهدکودک',icon:'👶'},{name:'باشگاه ورزشی',icon:'🏋️'},{name:'استخر',icon:'🏊'},{name:'زمین تنیس',icon:'🎾'},{name:'زمین بسکتبال',icon:'🏀'},{name:'زمین فوتبال',icon:'⚽'},{name:'دوچرخه‌سواری',icon:'🚴'},{name:'مسیر پیاده‌روی',icon:'🚶'},{name:'سالن ورزشی',icon:'🏋️'},{name:'باشگاه رزمی',icon:'🥋'},{name:'مرکز یوگا',icon:'🧘'},{name:'سالن اسکیت',icon:'⛸️'},{name:'استخر کودکان',icon:'🏊'},{name:'زمین گلف',icon:'⛳'},{name:'رینگ بوکس',icon:'🥊'},{name:'مسیر دوی',icon:'🏃'},{name:'سالن اسکواش',icon:'🎾'},{name:'سالن والیبال',icon:'🏐'},{name:'سالن بدمینتون',icon:'🏸'},{name:'مجموعه ورزشی',icon:'🏟️'},{name:'تئاتر',icon:'🎭'},{name:'سالن کنسرت',icon:'🎵'},{name:'اپرا',icon:'🎼'},{name:'گالری هنری',icon:'🖼️'},{name:'موزه هنر',icon:'🖼️'},{name:'موزه علوم',icon:'🔬'},{name:'موزه تاریخ',icon:'📜'},{name:'موزه فرهنگ',icon:'🏛️'},{name:'خانه فرهنگ',icon:'🎭'},{name:'مرکز فرهنگی',icon:'🎭'},{name:'پردیس سینمایی',icon:'🎬'},{name:'مرکز سرگرمی',icon:'🎡'},{name:'ایسکی‌پاد',icon:'⛸️'},{name:'بولینگ',icon:'🎳'},{name:'بیلیارد',icon:'🎱'},{name:'اتاق فرار',icon:'🔒'},{name:'کافه بازی',icon:'🎮'},{name:'سینما چهار‌بعدی',icon:'🎬'},{name:'پلنتاریوم',icon:'🌌'},{name:'اکواریوم',icon:'🐠'},{name:'دلفیناریوم',icon:'🐬'},{name:'باغ پرندگان',icon:'🦜'},{name:'باغ گیاه‌شناسی',icon:'🌸'},{name:'پارک جنگلی',icon:'🌲'},{name:'پارک ساحلی',icon:'🏖️'},{name:'پارک کوهستانی',icon:'⛰️'},{name:'پارک بیابانی',icon:'🏜️'},{name:'منطقه ویژه',icon:'🌿'},{name:'حیات‌وحش',icon:'🦁'},{name:'سد',icon:'💧'},{name:'تالاب',icon:'🌿'},{name:'جزیره',icon:'🏝️'},{name:'شبه‌جزیره',icon:'🏝️'},{name:'تنگه',icon:'🌊'},{name:'خلیج',icon:'🌊'},{name:'رود',icon:'🌊'},{name:'آبشار',icon:'💧'},{name:'چشمه',icon:'💧'},{name:'دره',icon:'🏞️'},{name:'تپه',icon:'⛰️'},{name:'قله',icon:'🏔️'},{name:'دامنه',icon:'⛰️'},{name:'جلگه',icon:'🌾'},{name:'دلتا',icon:'🌊'},{name:'گردنه',icon:'⛰️'},{name:'کنگلومرا',icon:'⛰️'},{name:'پناهگاه کوه',icon:'⛺'},{name:'کمپ کوهنوردی',icon:'⛺'},{name:'پایگاه صخره‌نوردی',icon:'⛰️'},{name:'مرکز اسکی',icon:'⛷️'},{name:'پیست اسکی',icon:'⛷️'},{name:'تله کابین',icon:'🚡'},{name:'تله‌سیژ',icon:'🚡'},{name:'پارک تفریحی',icon:'🎡'},{name:'دریاچه تفریحی',icon:'🌊'},{name:'قایقرانی',icon:'🚣'},{name:'کایاک',icon:'🚣'},{name:'غواصی',icon:'🤿'},{name:'موج‌سواری',icon:'🏄'},{name:'ماهیگیری',icon:'🎣'},{name:'شکار',icon:'🦌'},{name:'اسب‌سواری',icon:'🐎'},{name:'زمین سواری',icon:'🐎'},{name:'باغ کشاورزی',icon:'🌾'},{name:'مزرعه آلی',icon:'🥦'},{name:'گلخانه',icon:'🌸'},{name:'پرورش زنبور',icon:'🐝'},{name:'کندو',icon:'🍯'},{name:'چایکاری',icon:'🍵'},{name:'باغ چای',icon:'🌿'},{name:'مزرعه قهوه',icon:'☕'},{name:'تاکستان',icon:'🍇'},{name:'باغ مرکبات',icon:'🍊'},{name:'باغ هلو',icon:'🍑'},{name:'باغ سیب',icon:'🍎'},{name:'گندم‌زار',icon:'🌾'},{name:'کلزازار',icon:'🌼'},{name:'برنج‌کاری',icon:'🍚'},{name:'شالیزار',icon:'🌾'},{name:'مزرعه گل',icon:'🌸'},{name:'مزرعه لاوندر',icon:'💜'},{name:'مزرعه رُز',icon:'🌹'},{name:'مزرعه آفتابگردان',icon:'🌻'},{name:'نمایشگاه',icon:'🏛️'},{name:'نمایشگاه فناوری',icon:'💻'},{name:'نمایشگاه ماشین',icon:'🚗'},{name:'نمایشگاه کتاب',icon:'📚'},{name:'نمایشگاه هنر',icon:'🖼️'},{name:'بورس',icon:'📈'},{name:'کارخانه',icon:'🏭'},{name:'کارگاه',icon:'⚙️'},{name:'انبار',icon:'📦'},{name:'مرکز پخش',icon:'🚛'},{name:'پالایشگاه',icon:'🏭'},{name:'پتروشیمی',icon:'🏭'},{name:'نیروگاه',icon:'⚡'},{name:'نیروگاه خورشیدی',icon:'☀️'},{name:'مزرعه بادی',icon:'🌬️'},{name:'سد برق',icon:'⚡'},{name:'معدن',icon:'⛏️'},{name:'معدن زغال',icon:'⛏️'},{name:'معدن طلا',icon:'🥇'},{name:'معدن نمک',icon:'🧂'},{name:'تونل معدن',icon:'⛏️'},{name:'استخراج نفت',icon:'⛽'},{name:'سکوی نفت دریایی',icon:'⛽'},{name:'پالایشگاه نفت',icon:'⛽'},{name:'ترمینال نفتی',icon:'⛽'},{name:'سیلو',icon:'🌾'},{name:'دامداری',icon:'🐄'},{name:'مرغداری',icon:'🐔'},{name:'آبزی‌پروری',icon:'🐟'},{name:'مرکز تحقیقات',icon:'🔬'},{name:'آزمایشگاه',icon:'🧪'},{name:'مرکز فناوری',icon:'💡'},{name:'ناسا',icon:'🚀'},{name:'مرکز فضایی',icon:'🚀'},{name:'رصدخانه',icon:'🔭'},{name:'ایستگاه فضایی',icon:'🛸'},{name:'زیردریایی',icon:'🤿'},{name:'کشتی تحقیقاتی',icon:'🚢'},{name:'قطب جنوب',icon:'🧊'},{name:'قطب شمال',icon:'🧊'},{name:'شهر زیرزمینی',icon:'🕳️'},{name:'پناهگاه اتمی',icon:'☢️'},{name:'پایگاه زیرزمینی',icon:'🔒'},{name:'بانک اطلاعاتی',icon:'💾'},{name:'سرور فارم',icon:'🖥️'},{name:'مرکز داده',icon:'💻'},{name:'دفتر مرکزی شرکت',icon:'🏢'},{name:'شعبه بانک',icon:'🏦'},{name:'صرافی',icon:'💱'},{name:'اتاق بازرگانی',icon:'💼'},{name:'نمایندگی تجاری',icon:'🤝'},{name:'مرکز مالی',icon:'💰'},{name:'بورس کالا',icon:'📈'},{name:'بازار سهام',icon:'📈'},{name:'مرکز درمانی',icon:'🏥'},{name:'درمانگاه',icon:'🏥'},{name:'مرکز فوریت‌ها',icon:'🚑'},{name:'مرکز توانبخشی',icon:'🏥'},{name:'سراب',icon:'🌊'},{name:'آسایشگاه',icon:'🏡'},{name:'خانه سالمندان',icon:'🏡'},{name:'پرورشگاه',icon:'🏡'},{name:'مرکز نگهداری کودکان',icon:'👶'},{name:'شیرخوارگاه',icon:'👶'},{name:'کودکستان',icon:'🏫'},{name:'مهمانسرا',icon:'🏨'},{name:'کاروانسرا',icon:'🏨'},{name:'زائرسرا',icon:'🕌'},{name:'گرمخانه',icon:'♨️'},{name:'اسکان اورژانسی',icon:'🏠'},{name:'کمپ آوارگان',icon:'⛺'},{name:'پناهگاه',icon:'🏠'},{name:'دفتر ثبت احوال',icon:'📋'},{name:'دفتر اسناد رسمی',icon:'📜'},{name:'کنسولگری',icon:'🏛️'},{name:'پاسگاه مرزی',icon:'🛡️'},{name:'گمرک مرزی',icon:'✈️'},{name:'ایست پلیس',icon:'👮'},{name:'اداره راهنمایی رانندگی',icon:'🚗'},{name:'ادارات دولتی',icon:'🏛️'}
+    {name:'مدرسه',icon:'🏫'},{name:'بیمارستان',icon:'🏥'},{name:'فرودگاه',icon:'✈️'},
+    {name:'رستوران',icon:'🍽️'},{name:'پارک',icon:'🌳'},{name:'کتابخانه',icon:'📚'},
+    {name:'موزه',icon:'🏛️'},{name:'سینما',icon:'🎬'},{name:'ورزشگاه',icon:'🏟️'},
+    {name:'بانک',icon:'🏦'},{name:'سوپرمارکت',icon:'🛒'},{name:'داروخانه',icon:'💊'},
+    {name:'آرایشگاه',icon:'💇'},{name:'نانوایی',icon:'🍞'},{name:'کافه',icon:'☕'},
+    {name:'فست‌فود',icon:'🍔'},{name:'میوه‌فروشی',icon:'🍎'},{name:'کتاب‌فروشی',icon:'📚'},
+    {name:'دانشگاه',icon:'🎓'},{name:'زندان',icon:'🔒'},{name:'بندر',icon:'⚓'},
+    {name:'ایستگاه قطار',icon:'🚂'},{name:'مترو',icon:'🚇'},{name:'هتل',icon:'🏨'},
+    {name:'قلعه',icon:'🏰'},{name:'مسجد',icon:'🕌'},{name:'استخر',icon:'🏊'},
+    {name:'باغ‌وحش',icon:'🦁'},{name:'شهربازی',icon:'🎡'},{name:'پادگان',icon:'⚔️'}
   ]
 };
 
-// ===== STATE =====
-let playerCount = 5;
-let spyCount = 1;
-let timerMinutes = 8;
+let playerCount = 5, spyCount = 1, timerMinutes = 8;
 let selectedCategories = ['مکان‌ها'];
-let players = [];
-let assignments = [];
-let currentRevealIdx = 0;
-let cardFlipped = false;
-let currentLocation = null;
-let timerInterval = null;
-let timerSeconds = 0;
-let timerRunning = false;
+let players = [], assignments = [], currentRevealIdx = 0;
+let cardFlipped = false, currentLocation = null;
+let timerInterval = null, timerSeconds = 0, timerRunning = false;
 
-// ===== INIT =====
-function init() {
-  renderCategoryGrid();
-  renderNamesGrid();
-}
+function init() { renderCategoryGrid(); renderNamesGrid(); }
 
 function renderCategoryGrid() {
-  const grid = document.getElementById('cat-grid');
-  grid.innerHTML = Object.keys(LOCATIONS).map(cat => {
+  document.getElementById('cat-grid').innerHTML = Object.keys(LOCATIONS).map(cat => {
     const active = selectedCategories.includes(cat) ? 'active' : '';
     return `<button class="cat-btn ${active}" onclick="toggleCat('${cat}')">${cat}</button>`;
   }).join('');
@@ -985,14 +354,12 @@ function changeSpy(d) {
   updateSpyDisplay();
 }
 
-function updateSpyDisplay() {
-  document.getElementById('spy-num').textContent = toPersian(spyCount);
-}
+function updateSpyDisplay() { document.getElementById('spy-num').textContent = toPersian(spyCount); }
 
-function setTimer(mins) {
+function setTimer(mins, btn) {
   timerMinutes = mins;
-  document.querySelectorAll('.count-selector:last-of-type .count-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
+  document.querySelectorAll('#timer-btns .count-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
 }
 
 function renderNamesGrid() {
@@ -1001,32 +368,27 @@ function renderNamesGrid() {
   for (let i = 1; i <= playerCount; i++) {
     const div = document.createElement('div');
     div.className = 'name-field';
-    div.innerHTML = `<span class="name-num">${toPersian(i)}</span>
-      <input type="text" placeholder="بازیکن ${toPersian(i)}" id="pn-${i}">`;
+    div.innerHTML = `<span class="name-num">${toPersian(i)}</span><input type="text" placeholder="بازیکن ${toPersian(i)}" id="pn-${i}">`;
     grid.appendChild(div);
   }
 }
 
-// ===== GAME START =====
 function startGame() {
   players = [];
   for (let i = 1; i <= playerCount; i++) {
     const v = document.getElementById(`pn-${i}`).value.trim();
     players.push(v || `بازیکن ${toPersian(i)}`);
   }
-
-  // Pick location
+  // رندم انتخاب از همه کلمات دسته‌های انتخابی
   const pool = selectedCategories.flatMap(c => LOCATIONS[c]);
   currentLocation = pool[Math.floor(Math.random() * pool.length)];
 
-  // Assign roles
-  const roles = ['جاسوس'.repeat(0)];
-  const roleArr = [];
-  for (let i = 0; i < spyCount; i++) roleArr.push('spy');
-  for (let i = 0; i < playerCount - spyCount; i++) roleArr.push('citizen');
+  const roleArr = [
+    ...Array(spyCount).fill('spy'),
+    ...Array(playerCount - spyCount).fill('citizen')
+  ];
   const shuffled = shuffle(roleArr);
   assignments = players.map((name, i) => ({ name, role: shuffled[i] }));
-
   currentRevealIdx = 0;
   showScreen('reveal-screen');
   loadReveal();
@@ -1035,46 +397,36 @@ function startGame() {
 function loadReveal() {
   const a = assignments[currentRevealIdx];
   const isSpy = a.role === 'spy';
-
   document.getElementById('reveal-player-name').textContent = a.name;
-
-  // Dots
-  const dots = document.getElementById('pdots');
-  dots.innerHTML = assignments.map((_, i) => {
+  document.getElementById('pdots').innerHTML = assignments.map((_, i) => {
     let cls = 'pdot';
     if (i < currentRevealIdx) cls += ' done';
     else if (i === currentRevealIdx) cls += ' cur';
     return `<div class="${cls}"></div>`;
   }).join('');
-
-  // Reset card
   document.getElementById('card-inner').classList.remove('flipped');
   cardFlipped = false;
   document.getElementById('tap-hint').style.display = 'block';
   document.getElementById('next-btn').classList.remove('show');
-
-  // Card content
   const front = document.getElementById('card-front');
   front.className = `cface cfront ${isSpy ? 'spy-card' : 'citizen-card'}`;
-
   if (isSpy) {
     document.getElementById('card-icon').textContent = '🕵️';
     document.getElementById('card-badge').innerHTML = `<div class="spy-badge">جاسوس</div>`;
     document.getElementById('card-rname').textContent = 'تو جاسوسی!';
     document.getElementById('card-loc-label').textContent = '';
     document.getElementById('card-loc').textContent = '';
-    document.getElementById('card-desc').textContent = 'مکان رو نمی‌دونی! سوال بپرس، بفهم کجان و لو نده که جاسوسی.';
+    document.getElementById('card-desc').textContent = 'کلمه رو نمی‌دونی! سوال بپرس، بفهم چیه و لو نده که جاسوسی.';
   } else {
     document.getElementById('card-icon').textContent = currentLocation.icon;
-    document.getElementById('card-badge').innerHTML = ``;
+    document.getElementById('card-badge').innerHTML = '';
     document.getElementById('card-rname').textContent = 'شهروند';
     document.getElementById('card-loc-label').textContent = '🎯 کلمه بازی';
     document.getElementById('card-loc').textContent = currentLocation.name;
-    document.getElementById('card-desc').textContent = 'جاسوس رو پیدا کن! سوال بپرس و مراقب باش که مکان رو لو ندی.';
+    document.getElementById('card-desc').textContent = 'جاسوس رو پیدا کن! سوال بپرس و مراقب باش که کلمه رو لو ندی.';
   }
-
-  const nextBtn = document.getElementById('next-btn');
-  nextBtn.textContent = currentRevealIdx === assignments.length - 1 ? 'شروع بازی ▶' : 'بازیکن بعدی ←';
+  document.getElementById('next-btn').textContent =
+    currentRevealIdx === assignments.length - 1 ? 'شروع بازی ▶' : 'بازیکن بعدی ←';
 }
 
 function flipCard() {
@@ -1086,50 +438,32 @@ function flipCard() {
 }
 
 function nextReveal() {
-  if (currentRevealIdx === assignments.length - 1) {
-    startMainGame();
-    return;
-  }
-
+  if (currentRevealIdx === assignments.length - 1) { startMainGame(); return; }
   const nextIdx = currentRevealIdx + 1;
   const overlay = document.getElementById('pass-overlay');
   document.getElementById('pass-name').textContent = assignments[nextIdx].name;
   overlay.classList.add('show');
-  overlay.onclick = () => {
-    overlay.classList.remove('show');
-    currentRevealIdx = nextIdx;
-    loadReveal();
-  };
+  overlay.onclick = () => { overlay.classList.remove('show'); currentRevealIdx = nextIdx; loadReveal(); };
 }
 
-// ===== MAIN GAME =====
 function startMainGame() {
   showScreen('game-screen');
-
-  // Build players list
-  const list = document.getElementById('players-list');
-  list.innerHTML = assignments.map((a, i) =>
+  document.getElementById('players-list').innerHTML = assignments.map((a, i) =>
     `<div class="player-chip" id="chip-${i}" onclick="toggleEliminate(${i})">
-      <span class="player-chip-name">${a.name}</span>
-      <span class="elim-x">✕</span>
+      <span class="player-chip-name">${a.name}</span><span class="elim-x">✕</span>
     </div>`
   ).join('');
-
-  // Timer
   timerSeconds = timerMinutes * 60;
   timerRunning = false;
   updateTimerDisplay();
   document.getElementById('timer-toggle-btn').textContent = 'شروع';
 }
 
-function toggleEliminate(idx) {
-  document.getElementById(`chip-${idx}`).classList.toggle('eliminated');
-}
+function toggleEliminate(idx) { document.getElementById(`chip-${idx}`).classList.toggle('eliminated'); }
 
 function toggleTimer() {
   if (timerRunning) {
-    clearInterval(timerInterval);
-    timerRunning = false;
+    clearInterval(timerInterval); timerRunning = false;
     document.getElementById('timer-toggle-btn').textContent = 'ادامه';
   } else {
     timerRunning = true;
@@ -1137,41 +471,29 @@ function toggleTimer() {
     timerInterval = setInterval(() => {
       timerSeconds--;
       updateTimerDisplay();
-      if (timerSeconds <= 0) {
-        clearInterval(timerInterval);
-        timerRunning = false;
-        document.getElementById('timer-toggle-btn').textContent = 'تمام';
-      }
+      if (timerSeconds <= 0) { clearInterval(timerInterval); timerRunning = false; document.getElementById('timer-toggle-btn').textContent = 'تمام'; }
     }, 1000);
   }
 }
 
 function updateTimerDisplay() {
-  const m = Math.floor(timerSeconds / 60);
-  const s = timerSeconds % 60;
-  const str = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const m = Math.floor(timerSeconds / 60), s = timerSeconds % 60;
   const el = document.getElementById('timer-display');
-  el.textContent = str;
+  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   el.className = 'timer-val' + (timerSeconds <= 30 ? ' danger' : '');
 }
 
-// ===== RESULT =====
 function showResult() {
   if (timerInterval) clearInterval(timerInterval);
   showScreen('result-screen');
-
   const spies = assignments.filter(a => a.role === 'spy');
-
   document.getElementById('result-icon').textContent = '🎭';
   document.getElementById('result-title').textContent = 'نتیجه بازی';
   document.getElementById('result-sub').textContent =
     `جاسوس${spies.length > 1 ? 'ها' : ''}: ${spies.map(s => s.name).join('، ')}\nکلمه: ${currentLocation.name}`;
-
   document.getElementById('res-loc-icon').textContent = currentLocation.icon;
   document.getElementById('res-loc-name').textContent = currentLocation.name;
-
-  const list = document.getElementById('reveal-list');
-  list.innerHTML = assignments.map(a =>
+  document.getElementById('reveal-list').innerHTML = assignments.map(a =>
     `<div class="reveal-row">
       <div class="reveal-name">${a.name}</div>
       <div class="reveal-role-badge ${a.role === 'spy' ? 'badge-spy' : 'badge-citizen'}">
@@ -1181,12 +503,8 @@ function showResult() {
   ).join('');
 }
 
-function newGame() {
-  if (timerInterval) clearInterval(timerInterval);
-  showScreen('setup-screen');
-}
+function newGame() { if (timerInterval) clearInterval(timerInterval); showScreen('setup-screen'); }
 
-// ===== HELPERS =====
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -1201,9 +519,7 @@ function shuffle(arr) {
   return a;
 }
 
-function toPersian(n) {
-  return n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
-}
+function toPersian(n) { return n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
 
 init();
 </script>
