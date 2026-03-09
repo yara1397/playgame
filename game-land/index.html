@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>گیم‌لند</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07080f;--s1:#0d0f1e;--s2:#141728;--bd:#1e2240;--acc:#6366f1;--acc2:#22d3ee;--gold:#f59e0b;--red:#ef4444;--grn:#10b981;--t1:#e8eaf6;--t2:#9094c4;--t3:#4a4e7a;--f:'Vazirmatn',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--f);background:var(--bg);color:var(--t1);min-height:100vh}
+.bg-glow{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(99,102,241,.2),transparent 65%),radial-gradient(ellipse 40% 40% at 85% 80%,rgba(34,211,238,.08),transparent 50%)}
+.wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:0 16px 48px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0 28px;flex-wrap:wrap;gap:12px}
+.logo{font-size:1.7rem;font-weight:900;letter-spacing:-2px;background:linear-gradient(130deg,#818cf8,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nick-form{display:flex;gap:8px;align-items:center}
+.nick-form input{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:9px 14px;color:var(--t1);font-family:var(--f);font-size:.88rem;width:160px;outline:none;transition:border .2s}
+.nick-form input:focus{border-color:var(--acc)}
+.nick-form button{background:var(--acc);color:#fff;border:none;border-radius:10px;padding:9px 16px;cursor:pointer;font-family:var(--f);font-weight:700;font-size:.85rem}
+.nick-form button:hover{opacity:.85}
+.nick-ok{font-size:.82rem;color:var(--grn);display:flex;align-items:center;gap:6px}
+.slabel{font-size:.78rem;font-weight:700;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.ggrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:36px}
+@media(max-width:600px){.ggrid{grid-template-columns:1fr}}
+.gc{display:block;text-decoration:none;color:inherit;background:var(--s1);border:1px solid var(--bd);border-radius:22px;padding:26px 22px;cursor:pointer;transition:transform .25s,border-color .25s,box-shadow .25s;position:relative;overflow:hidden}
+.gc::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(255,255,255,.03));pointer-events:none}
+.gc:hover{transform:translateY(-5px)}
+.gc.mafia:hover{border-color:#ef4444;box-shadow:0 12px 40px rgba(239,68,68,.2)}
+.gc.poker:hover{border-color:#f59e0b;box-shadow:0 12px 40px rgba(245,158,11,.2)}
+.gc.spy:hover{border-color:#22d3ee;box-shadow:0 12px 40px rgba(34,211,238,.2)}
+.gc-ico{font-size:2.8rem;margin-bottom:12px}
+.gc-name{font-size:1.15rem;font-weight:800;margin-bottom:6px}
+.gc-desc{font-size:.8rem;color:var(--t3);line-height:1.65;margin-bottom:14px}
+.gc-foot{display:flex;justify-content:space-between;align-items:center}
+.gc-players{font-size:.75rem;color:var(--t3)}
+.badge{padding:3px 10px;border-radius:99px;font-size:.7rem;font-weight:700;display:inline-block}
+.br{background:rgba(239,68,68,.15);color:#ef4444}.by{background:rgba(245,158,11,.15);color:#f59e0b}.bc{background:rgba(34,211,238,.15);color:#22d3ee}
+.rh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.rooms-box{background:var(--s1);border:1px solid var(--bd);border-radius:20px;overflow:hidden}
+.rrow{display:flex;align-items:center;gap:14px;padding:15px 20px;border-bottom:1px solid var(--bd);transition:background .15s}
+.rrow:last-child{border-bottom:none}
+.rrow:hover{background:var(--s2)}
+.ri{font-size:1.7rem;width:44px;text-align:center;flex-shrink:0}
+.ri2{flex:1;min-width:0}
+.rn{font-weight:700;font-size:.93rem}
+.rm{font-size:.74rem;color:var(--t3);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0;animation:blink 2s infinite}
+.dot-g{background:var(--grn)}.dot-y{background:var(--gold);animation:none}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.bjoin{background:linear-gradient(135deg,var(--acc),#4f46e5);color:#fff;border:none;border-radius:10px;padding:9px 18px;cursor:pointer;font-family:var(--f);font-size:.82rem;font-weight:700;transition:transform .15s,box-shadow .15s;white-space:nowrap}
+.bjoin:hover{transform:scale(1.05);box-shadow:0 4px 16px rgba(99,102,241,.45)}
+.bfull{background:var(--s2);color:var(--t3);border:1px solid var(--bd);border-radius:10px;padding:9px 14px;font-size:.78rem;cursor:default;white-space:nowrap}
+.nrooms{padding:44px;text-align:center;color:var(--t3)}
+.nri{font-size:3rem;margin-bottom:12px}
+.rbtn{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:7px 14px;cursor:pointer;color:var(--t2);font-family:var(--f);font-size:.8rem}
+.rbtn:hover{background:var(--bd)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:12px 22px;z-index:999;font-size:.88rem;box-shadow:0 8px 28px rgba(0,0,0,.5);animation:tin .3s;pointer-events:none;text-align:center;max-width:90vw}
+@keyframes tin{from{transform:translateX(-50%) translateY(12px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="wrap">
+  <nav>
+    <div class="logo">🎮 گیم‌لند</div>
+    <div id="nickArea">
+      <div class="nick-form">
+        <input id="nickIn" placeholder="نام بازیکن..." maxlength="18" onkeydown="if(event.key==='Enter')saveNick()">
+        <button onclick="saveNick()">ذخیره</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="slabel">بازی انتخاب کن</div>
+  <div class="ggrid">
+    <a class="gc mafia" href="mafia.html" onclick="return chkNick(event)">
+      <div class="gc-ico">🎭</div>
+      <div class="gc-name">مافیا <span class="badge br">محبوب</span></div>
+      <div class="gc-desc">۸ نقش: رییس مافیا، دکتر لکتر، کارآگاه، تک‌تیرانداز، پلیس و بیشتر</div>
+      <div class="gc-foot"><span class="gc-players">👥 ۸–۱۶ نفر</span></div>
+    </a>
+    <a class="gc poker" href="poker.html" onclick="return chkNick(event)">
+      <div class="gc-ico">🃏</div>
+      <div class="gc-name">پوکر <span class="badge by">هیجانی</span></div>
+      <div class="gc-desc">تگزاس هولدم — تا آخرین نفر بازی کن!</div>
+      <div class="gc-foot"><span class="gc-players">👥 ۲–۸ نفر</span></div>
+    </a>
+    <a class="gc spy" href="spy.html" onclick="return chkNick(event)">
+      <div class="gc-ico">🕵️</div>
+      <div class="gc-name">جاسوس <span class="badge bc">جدید</span></div>
+      <div class="gc-desc">۲۰۰۰ کلمه رندم — همه یک کلمه دارند جز جاسوس!</div>
+      <div class="gc-foot"><span class="gc-players">👥 ۴–۸ نفر</span></div>
+    </a>
+  </div>
+
+  <div class="rh">
+    <div class="slabel" style="margin:0">اتاق‌های فعال</div>
+    <button class="rbtn" onclick="renderRooms()">↺ بروزرسانی</button>
+  </div>
+  <div class="rooms-box" id="roomsBox">
+    <div class="nrooms"><div class="nri">🌐</div>در حال بارگذاری...</div>
+  </div>
+</div>
+
+<script src="engine.js"></script>
+<script>
+const GMETA={
+  mafia:{n:'مافیا',e:'🎭',u:'mafia.html',min:8,max:16},
+  poker:{n:'پوکر',e:'🃏',u:'poker.html',min:2,max:8},
+  spy:  {n:'جاسوس',e:'🕵️',u:'spy.html',min:4,max:8}
+};
+
+(function(){
+  const n=GE.getNick();
+  if(n){document.getElementById('nickIn').value=n;showOk(n);}
+})();
+
+function saveNick(){
+  const v=document.getElementById('nickIn').value.trim();
+  if(!v){showToast('⚠️ لطفاً نام وارد کن');return;}
+  GE.setNick(v);showOk(v);showToast('نام ذخیره شد ✓');
+}
+function showOk(n){
+  document.getElementById('nickArea').innerHTML=
+    `<div class="nick-ok">✅ <b>${n}</b> <a href="#" onclick="changeNick()" style="color:var(--t3);font-size:.75rem;margin-right:8px">تغییر</a></div>`;
+}
+function changeNick(){
+  document.getElementById('nickArea').innerHTML=
+    `<div class="nick-form"><input id="nickIn" placeholder="نام..." maxlength="18" onkeydown="if(event.key==='Enter')saveNick()" value="${GE.getNick()}"><button onclick="saveNick()">ذخیره</button></div>`;
+}
+function chkNick(e){
+  if(!GE.getNick()){e.preventDefault();showToast('⚠️ ابتدا نام خود را وارد کن!');document.querySelector('.nick-form input')?.focus();return false;}
+  return true;
+}
+
+GE.on('lobby',renderRooms);
+renderRooms();
+
+function renderRooms(){
+  const rooms=GE.all();const now=Date.now();
+  const live=Object.entries(rooms)
+    .filter(([,r])=>r&&!r.cancelled&&(now-(r.createdAt||0))<14400000)
+    .sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
+  const box=document.getElementById('roomsBox');
+  if(!live.length){box.innerHTML=`<div class="nrooms"><div class="nri">🎲</div>هنوز اتاقی نیست — اولین بازی را شروع کن!</div>`;return;}
+  box.innerHTML=live.map(([id,r])=>{
+    const m=GMETA[r.game]||{};
+    const pc=Object.keys(r.players||{}).length;
+    const playing=r.status==='playing'||r.status==='reveal';
+    const isMine=!!(r.players||{})[GE.myId];
+    const full=pc>=(m.max||99)&&!isMine;
+    const ended=r.status==='ended';
+    return`<div class="rrow">
+      <div class="ri">${m.e||'🎮'}</div>
+      <div class="ri2">
+        <div class="rn">${m.n} — کد ${r.code||id.slice(-4)}</div>
+        <div class="rm"><span class="dot ${(playing&&!ended)?'dot-y':'dot-g'}"></span>
+          ${ended?'تمام شده':playing?'در بازی':'منتظر بازیکن'} · <b>${pc}</b> نفر · هاست: ${r.hostName||'؟'}
+        </div>
+      </div>
+      ${ended?`<span class="bfull">تمام</span>`:
+       full&&!isMine?`<span class="bfull">⛔ ظرفیت پر</span>`:
+       playing&&!isMine?`<span class="bfull">در بازی</span>`:
+       `<button class="bjoin" onclick="joinRoom('${id}','${r.game}')">پیوستن 🚪</button>`}
+    </div>`;
+  }).join('');
+}
+
+function joinRoom(id,game){
+  if(!GE.getNick()){showToast('⚠️ ابتدا نام وارد کن!');return;}
+  const r=GE.get(id);if(!r)return;
+  const m=GMETA[game];if(!m)return;
+  const pc=Object.keys(r.players||{}).length;
+  const isMine=!!(r.players||{})[GE.myId];
+  // Capacity check
+  if(pc>=(m.max||99)&&!isMine){showToast('⛔ ظرفیت پر است! جای خالی وجود ندارد.');return;}
+  localStorage.setItem('gl4_joinRoom',id);
+  window.location.href=m.u;
+}
+
+function showToast(msg){
+  document.querySelector('.toast')?.remove();
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2800);
+}
+</script>
+</body></html>
