@@ -86,7 +86,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--t1);min-height:100vh}
   <!-- LOBBY -->
   <div id="phLobby">
     <div class="panel">
-      <div class="stit">👥 بازیکنان (<span id="pcLobby">0</span>/۱۶ — حداقل ۸)</div>
+      <div class="stit">👥 بازیکنان (<span id="pcLobby">0</span>/۱۲ — حداقل ۴)</div>
       <div class="pg" id="pgLobby"></div>
       <div style="margin-top:18px;text-align:center">
         <button class="btn bp" id="btnStart" onclick="startGame()" disabled>🚀 شروع بازی</button>
@@ -159,8 +159,8 @@ body{font-family:var(--f);background:var(--bg);color:var(--t1);min-height:100vh}
 
 <script src="engine.js"></script>
 <script>
-const AVATS=['🧑','👩','🧔','👱','🧕','👳','🦱','🧑‍🎤','🧑‍💻','🧑‍🔬','🕵','👴','👵','🧑‍🦰','🧑‍🦳','🧑‍🦱'];
-const MIN_P=8,MAX_P=16;
+const AVATS=['🧑','👩','🧔','👱','🧕','👳','🦱','🧑‍🎤','🧑‍💻','🧑‍🔬','🕵','👴'];
+const MIN_P=4,MAX_P=12;
 
 const RDEFS={
   boss_mafia:{name:'رییس مافیا',emoji:'👑',faction:'mafia',desc:'رهبر مافیا. هر شب قربانی را انتخاب می‌کند.'},
@@ -174,12 +174,16 @@ const RDEFS={
 };
 
 function getRoles(n){
-  // Fully random distribution based on count
+  // Balanced role distribution for 4-12 players
+  if(n<=4)  return GE.shuffle(['boss_mafia','doctor','detective','citizen']);
+  if(n<=5)  return GE.shuffle(['boss_mafia','mafia','doctor','detective','citizen']);
+  if(n<=6)  return GE.shuffle(['boss_mafia','mafia','doctor','detective','police','citizen']);
+  if(n<=7)  return GE.shuffle(['boss_mafia','mafia','lector','doctor','detective','citizen','citizen']);
   if(n<=8)  return GE.shuffle(['boss_mafia','mafia','lector','doctor','detective','sniper','police','citizen']);
+  if(n<=9)  return GE.shuffle(['boss_mafia','mafia','lector','doctor','detective','sniper','police','citizen','citizen']);
   if(n<=10) return GE.shuffle(['boss_mafia','mafia','mafia','lector','doctor','detective','sniper','police','citizen','citizen']);
-  if(n<=12) return GE.shuffle(['boss_mafia','mafia','mafia','lector','doctor','detective','sniper','police','police','citizen','citizen','citizen']);
-  if(n<=14) return GE.shuffle(['boss_mafia','mafia','mafia','mafia','lector','doctor','detective','sniper','police','police','citizen','citizen','citizen','citizen']);
-  return     GE.shuffle(['boss_mafia','mafia','mafia','mafia','lector','doctor','doctor','detective','sniper','police','police','citizen','citizen','citizen','citizen','citizen']);
+  if(n<=11) return GE.shuffle(['boss_mafia','mafia','mafia','lector','doctor','detective','sniper','police','citizen','citizen','citizen']);
+  return     GE.shuffle(['boss_mafia','mafia','mafia','lector','doctor','detective','sniper','police','police','citizen','citizen','citizen']);
 }
 
 let myId=GE.myId,myNick=GE.getNick(),roomId=null,isHost=false;
@@ -189,24 +193,33 @@ let nightTimer=null;
 // ══ INIT ══
 (function(){
   if(!myNick){window.location.href='index.html';return;}
+
+  // Priority 1: explicit joinRoom from lobby (works cross-device)
   const joinId=localStorage.getItem('gl4_joinRoom');
   localStorage.removeItem('gl4_joinRoom');
   if(joinId){
     const r=GE.get(joinId);
     if(r&&r.game==='mafia'&&!r.cancelled){
-      // Check capacity
       const pc=Object.keys(r.players||{}).length;
       const isMine=!!(r.players||{})[myId];
       if(pc>=MAX_P&&!isMine){showToast('⛔ ظرفیت پر است!');setTimeout(()=>window.location.href='index.html',2000);return;}
       doJoin(joinId);return;
     }
   }
+
+  // Priority 2: already in a room on this device
   const saved=localStorage.getItem('gl4_mafia_room');
   if(saved){
     const r=GE.get(saved);
     if(r&&!r.cancelled&&(r.players||{})[myId]){doJoin(saved);return;}
     localStorage.removeItem('gl4_mafia_room');
   }
+
+  // Priority 3: look for any active mafia room this player is already in (cross-device re-join)
+  const allRooms=GE.all();
+  const myRoom=Object.entries(allRooms).find(([,r])=>r.game==='mafia'&&!r.cancelled&&r.status!=='ended'&&(r.players||{})[myId]);
+  if(myRoom){doJoin(myRoom[0]);return;}
+
   doCreate();
 })();
 
@@ -312,12 +325,15 @@ function renderGame(r){
   const players=Object.values(r.players||{});
   document.getElementById('pgGame').innerHTML=players.map((p,i)=>{
     const dead=elim.includes(p.id);
+    // Only reveal role if: it's me, OR the player is dead (revealed at death)
     const rd2=dead&&gs.roles?RDEFS[gs.roles[p.id]]:null;
-    return`<div class="pc ${p.id===myId?'me':''} ${dead?'dead':''}">
+    const isMe=p.id===myId;
+    const myRd=isMe&&gs.roles?RDEFS[gs.roles[myId]]:null;
+    return`<div class="pc ${isMe?'me':''} ${dead?'dead':''}">
       ${(vCount[p.id]||0)?`<div class="vdot">${vCount[p.id]}</div>`:''}
       <div class="pc-av">${AVATS[i%AVATS.length]}</div>
-      <div class="pc-name">${p.name}</div>
-      <div class="pc-tag">${dead?(rd2?rd2.emoji+' '+rd2.name:'💀'):'⚪'}</div>
+      <div class="pc-name">${p.name}${isMe?' (شما)':''}</div>
+      <div class="pc-tag">${dead?(rd2?rd2.emoji+' '+rd2.name:'💀'):isMe&&myRd?(myRd.emoji+' '+myRd.name):'⚪'}</div>
     </div>`;
   }).join('');
 
@@ -596,9 +612,10 @@ function renderResult(r){
 function leaveGame(){
   if(!roomId)return;
   if(isHost){
-    // Host leaves → cancel game
+    // Host leaves → cancel and DELETE room entirely
     GE.patch(roomId,rm=>{rm.cancelled=true;rm.status='cancelled';});
-    GE.chat(roomId,{sys:true,text:'❌ هاست بازی را ترک کرد. بازی کنسل شد!'});
+    GE.chat(roomId,{sys:true,text:'❌ هاست از بازی خارج شد. اتاق بسته شد!'});
+    setTimeout(()=>GE.del(roomId),2000); // delete after others see the message
     GE.off('mafia');
     localStorage.removeItem('gl4_mafia_room');
     window.location.href='index.html';

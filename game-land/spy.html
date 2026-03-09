@@ -245,6 +245,10 @@ let hasVoted=false,selWord=null;
     if(r&&!r.cancelled&&(r.players||{})[myId]){doJoin(saved);return;}
     localStorage.removeItem('gl4_spy_room');
   }
+  // Cross-device re-join: find active room this player is in
+  const allRooms=GE.all();
+  const myRoom=Object.entries(allRooms).find(([,r])=>r.game==='spy'&&!r.cancelled&&r.status!=='ended'&&(r.players||{})[myId]);
+  if(myRoom){doJoin(myRoom[0]);return;}
   doCreate();
 })();
 
@@ -542,7 +546,8 @@ function leaveGame(){
   if(!roomId)return;
   if(isHost){
     GE.patch(roomId,rm=>{rm.cancelled=true;rm.status='cancelled';});
-    GE.chat(roomId,{sys:true,text:'❌ هاست بازی را ترک کرد. بازی کنسل شد!'});
+    GE.chat(roomId,{sys:true,text:'❌ هاست از بازی خارج شد. اتاق بسته شد!'});
+    setTimeout(()=>GE.del(roomId),2000);
     GE.off('spy');localStorage.removeItem('gl4_spy_room');window.location.href='index.html';
   }else{
     GE.patch(roomId,rm=>{delete rm.players[myId];});
