@@ -254,8 +254,9 @@ let hasVoted=false,selWord=null;
 
 function doCreate(){
   roomId='s'+Date.now().toString(36);isHost=true;
-  GE.create(roomId,{game:'spy',code:rand4(),status:'waiting',hostId:myId,hostName:myNick,createdAt:Date.now(),
-    players:{[myId]:{id:myId,name:myNick}},chat:[],gameState:{},cancelled:false});
+  const roomData={game:'spy',code:rand4(),status:'waiting',hostId:myId,hostName:myNick,createdAt:Date.now(),
+    players:{[myId]:{id:myId,name:myNick}},chat:[],gameState:{},cancelled:false};
+  GE.ready().then(()=>GE.create(roomId,roomData));
   localStorage.setItem('gl4_spy_room',roomId);
   listen();
 }
@@ -273,7 +274,9 @@ function doJoin(id){
 }
 function listen(){
   GE.on('spy',all=>{const r=all[roomId];if(r)render(r);});
-  const r=GE.get(roomId);if(r){document.getElementById('tbCode').textContent=r.code;render(r);}
+  GE.ready().then(()=>{
+    setTimeout(()=>{const r=GE.get(roomId);if(r)render(r);},800);
+  });
 }
 
 function render(r){

@@ -133,7 +133,8 @@ function chkNick(e){
 }
 
 GE.on('lobby',renderRooms);
-renderRooms();
+// منتظر دیتابیس بمان بعد اتاق‌ها را نشان بده
+GE.ready().then(()=>renderRooms());
 
 function renderRooms(){
   const rooms=GE.all();const now=Date.now();

@@ -226,10 +226,13 @@ let nightTimer=null;
 function doCreate(){
   roomId='m'+Date.now().toString(36);
   isHost=true;
-  GE.create(roomId,{game:'mafia',code:rand4(),status:'waiting',hostId:myId,hostName:myNick,createdAt:Date.now(),players:{[myId]:{id:myId,name:myNick,alive:true}},chat:[],gameState:{},cancelled:false});
+  const roomData={game:'mafia',code:rand4(),status:'waiting',hostId:myId,hostName:myNick,createdAt:Date.now(),players:{[myId]:{id:myId,name:myNick,alive:true}},chat:[],gameState:{},cancelled:false};
+  GE.ready().then(()=>{
+    GE.create(roomId,roomData);
+    GE.chat(roomId,{sys:true,text:`${myNick} اتاق ساخت 🎉`});
+  });
   localStorage.setItem('gl4_mafia_room',roomId);
   listen();
-  GE.chat(roomId,{sys:true,text:`${myNick} اتاق ساخت 🎉`});
 }
 
 function doJoin(id){
@@ -254,7 +257,10 @@ function listen(){
     if(r.cancelled&&!isHost){showAllPhases('phCancel');return;}
     render(r);
   });
-  const r=GE.get(roomId);if(r)render(r);
+  // منتظر دیتابیس بمان بعد رندر کن
+  GE.ready().then(()=>{
+    setTimeout(()=>{const r=GE.get(roomId);if(r)render(r);},800);
+  });
 }
 
 function render(r){

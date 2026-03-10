@@ -222,8 +222,9 @@ let myId=GE.myId,myNick=GE.getNick(),roomId=null,isHost=false;
 
 function doCreate(){
   roomId='k'+Date.now().toString(36);isHost=true;
-  GE.create(roomId,{game:'poker',code:rand4(),status:'waiting',hostId:myId,hostName:myNick,createdAt:Date.now(),
-    players:{[myId]:{id:myId,name:myNick,chips:START_CHIPS}},chat:[],gameState:{},cancelled:false});
+  const roomData={game:'poker',code:rand4(),status:'waiting',hostId:myId,hostName:myNick,createdAt:Date.now(),
+    players:{[myId]:{id:myId,name:myNick,chips:START_CHIPS}},chat:[],gameState:{},cancelled:false};
+  GE.ready().then(()=>GE.create(roomId,roomData));
   localStorage.setItem('gl4_poker_room',roomId);
   listen();
 }
@@ -241,7 +242,9 @@ function doJoin(id){
 }
 function listen(){
   GE.on('poker',all=>{const r=all[roomId];if(r)render(r);});
-  const r=GE.get(roomId);if(r){document.getElementById('tbCode').textContent=r.code;render(r);}
+  GE.ready().then(()=>{
+    setTimeout(()=>{const r=GE.get(roomId);if(r)render(r);},800);
+  });
 }
 
 function render(r){
