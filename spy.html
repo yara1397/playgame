@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>جاسوس — گیم‌لند</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#020910;--s1:#060f18;--s2:#0b1825;--bd:#122236;--acc:#0ea5e9;--acc2:#06b6d4;--gold:#f59e0b;--red:#ef4444;--grn:#10b981;--t1:#d4f1ff;--t2:#6ba0ba;--t3:#2e5068;--f:'Vazirmatn',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--f);background:var(--bg);color:var(--t1);min-height:100vh}
+.bg{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 45% at 50% 0%,rgba(14,165,233,.18),transparent 60%)}
+.wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:16px 16px 48px}
+.topbar{display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--bd);border-radius:16px;padding:12px 18px;margin-bottom:14px;flex-wrap:wrap}
+.back{text-decoration:none;color:var(--t2);background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:9px;padding:6px 12px;font-size:.82rem}
+.back:hover{background:var(--bd)}
+.tb-t{font-weight:800;font-size:1.05rem;flex:1}
+.tb-c{background:var(--s2);border:1px solid var(--bd);padding:4px 10px;border-radius:7px;font-size:.76rem;color:var(--acc);font-weight:700;letter-spacing:1px}
+.bl{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.3);border-radius:9px;padding:6px 12px;cursor:pointer;font-family:var(--f);font-size:.8rem;font-weight:600}
+.panel{background:var(--s1);border:1px solid var(--bd);border-radius:20px;padding:20px;margin-bottom:14px}
+.stit{font-size:.85rem;font-weight:700;color:var(--t2);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.stit::after{content:'';flex:1;height:1px;background:var(--bd)}
+.pbann{border-radius:14px;padding:14px 18px;text-align:center;font-weight:700;font-size:1rem;margin-bottom:14px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.3);color:var(--acc)}
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(115px,1fr));gap:10px}
+.pc{background:var(--s2);border:2px solid var(--bd);border-radius:14px;padding:12px 8px;text-align:center;transition:all .2s;position:relative}
+.pc.me{border-color:var(--acc)}.pc.host{border-color:var(--gold)}
+.pc.clickable{cursor:pointer}.pc.clickable:hover{border-color:var(--red);transform:translateY(-2px);background:rgba(239,68,68,.06)}
+.pc.voted{border-color:var(--red);background:rgba(239,68,68,.08)}
+.pav{width:40px;height:40px;border-radius:50%;margin:0 auto 7px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:linear-gradient(135deg,var(--acc),#0369a1)}
+.pnm{font-size:.82rem;font-weight:700}.ptg{font-size:.68rem;color:var(--t3);margin-top:3px}
+.vb{position:absolute;top:-5px;right:-5px;background:var(--red);color:#fff;border-radius:99px;font-size:.68rem;font-weight:800;padding:2px 6px}
+/* ROLE REVEAL */
+.wr{text-align:center;padding:24px 16px}
+.wr-w{font-size:3rem;font-weight:900;background:linear-gradient(135deg,var(--acc),var(--acc2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px;letter-spacing:-1px}
+.wr-spy{font-size:2rem;font-weight:900;color:var(--red);margin-bottom:12px}
+.wr-d{color:var(--t2);font-size:.86rem;line-height:1.7}
+.word-box{background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.25);border-radius:12px;padding:14px 18px;text-align:center;margin-bottom:14px}
+/* VOTE */
+.ag{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:10px}
+.ab{background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:11px 8px;cursor:pointer;text-align:center;transition:all .2s;font-family:var(--f);color:var(--t1)}
+.ab:hover{border-color:var(--red);background:rgba(239,68,68,.08)}
+.ab.picked{border-color:var(--red)!important;background:rgba(239,68,68,.12)!important;color:var(--red)!important}
+/* WORD CARDS for spy guess */
+.cards-deck{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;max-height:280px;overflow-y:auto;padding:4px}
+.word-card{
+  background:linear-gradient(160deg,#fff,#f0f0f0);
+  border-radius:12px;padding:12px 16px;
+  font-size:.9rem;font-weight:800;color:#111;
+  cursor:pointer;transition:all .2s;
+  box-shadow:0 4px 12px rgba(0,0,0,.4);
+  border:2px solid transparent;
+  min-width:70px;text-align:center;
+}
+.word-card:hover{transform:translateY(-3px) rotate(-1deg);box-shadow:0 8px 20px rgba(14,165,233,.4);border-color:var(--acc2)}
+.word-card.selected{background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff;border-color:#0284c7;transform:translateY(-3px);box-shadow:0 8px 20px rgba(14,165,233,.5)}
+.wg-srch{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:9px;padding:9px 12px;color:var(--t1);font-family:var(--f);font-size:.88rem;outline:none;margin-bottom:10px;transition:border .2s}
+.wg-srch:focus{border-color:var(--acc)}
+/* GUESSES REMAINING */
+.guess-counter{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
+.guess-dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--acc2)}
+.guess-dot.used{background:var(--red);border-color:var(--red)}
+.guess-dot.avail{background:var(--acc);border-color:var(--acc)}
+.btn{padding:10px 20px;border-radius:11px;border:none;font-family:var(--f);font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s}
+.bp{background:linear-gradient(135deg,var(--acc),#0369a1);color:#fff}
+.bp:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(14,165,233,.35)}
+.bp:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
+.bgold{background:linear-gradient(135deg,var(--gold),#d97706);color:#000;font-weight:800}
+.bgold:hover:not(:disabled){transform:translateY(-2px)}
+.bgold:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.bd2{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.brow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.chat-box{background:var(--s2);border:1px solid var(--bd);border-radius:14px;overflow:hidden}
+.chat-msgs{height:160px;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:5px}
+.cm{font-size:.8rem}.cm-sys{color:var(--t3);font-style:italic}
+.cm-u .cmw{font-size:.72rem;font-weight:700;color:var(--acc);margin-bottom:1px}.cm-u .cmt{color:var(--t2)}
+.ci{display:flex;gap:8px;padding:8px;border-top:1px solid var(--bd)}
+.ci input{flex:1;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:7px 10px;color:var(--t1);font-family:var(--f);font-size:.82rem;outline:none}
+.ci input:focus{border-color:var(--acc)}
+.csend{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:7px 12px;cursor:pointer;font-family:var(--f);font-size:.78rem;font-weight:600}
+.res{text-align:center;padding:26px 16px}
+.ri{font-size:4rem;margin-bottom:12px}.rt{font-size:1.8rem;font-weight:900;margin-bottom:6px}.rs{color:var(--t2);font-size:.88rem;margin-bottom:8px}
+.rlist{margin-top:14px}.rli{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bd);font-size:.84rem}.rli:last-child{border-bottom:none}
+.rli-n{font-weight:700;flex:1}
+.cancel-screen{text-align:center;padding:40px 20px}
+.cancel-icon{font-size:4rem;margin-bottom:16px}
+.cancel-title{font-size:1.6rem;font-weight:900;margin-bottom:8px;color:var(--red)}
+.cancel-sub{color:var(--t2);font-size:.9rem;margin-bottom:20px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:12px 22px;z-index:999;font-size:.86rem;box-shadow:0 8px 28px rgba(0,0,0,.5);animation:tin .3s;pointer-events:none;text-align:center;max-width:90vw}
+@keyframes tin{from{transform:translateX(-50%) translateY(10px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="wrap">
+  <div class="topbar">
+    <a href="index.html" class="back">← لابی</a>
+    <div class="tb-t">🕵️ جاسوس</div>
+    <span class="tb-c" id="tbCode">----</span>
+    <button class="bl" onclick="leaveGame()">خروج</button>
+  </div>
+
+  <div id="phLobby">
+    <div class="panel">
+      <div class="stit">👥 بازیکنان (<span id="pcLobby">0</span>/۸ — حداقل ۴)</div>
+      <div class="pg" id="pgLobby"></div>
+      <div style="margin-top:16px;text-align:center">
+        <button class="btn bp" id="btnStart" onclick="startSpy()" disabled>🚀 شروع بازی</button>
+        <div id="waitMsg" class="hidden" style="margin-top:8px;font-size:.83rem;color:var(--t3)">منتظر هاست...</div>
+      </div>
+    </div>
+    <div class="panel"><div class="stit">💬 چت</div>
+      <div class="chat-box"><div class="chat-msgs" id="chatLobby"></div>
+        <div class="ci"><input id="ciL" placeholder="پیام..." onkeydown="if(event.key==='Enter')sendChat('ciL')"><button class="csend" onclick="sendChat('ciL')">ارسال</button></div>
+      </div></div>
+  </div>
+
+  <div id="phReveal" class="hidden">
+    <div class="panel"><div class="wr" id="revContent"></div>
+      <div class="brow" style="margin-top:12px">
+        <button class="btn bp" onclick="goPlay()">فهمیدم! ▶</button>
+      </div></div>
+  </div>
+
+  <div id="phGame" class="hidden">
+    <div class="pbann" id="pbann">🕵️ بازی در جریان</div>
+    <div id="wordReminder" class="word-box"></div>
+    <div class="panel"><div class="stit">👥 بازیکنان</div><div class="pg" id="pgGame"></div></div>
+
+    <!-- VOTE PANEL -->
+    <div id="panVote" class="panel">
+      <div class="stit">🗳️ چه کسی جاسوس است؟ رأی بده</div>
+      <div class="ag" id="agVote"></div>
+      <div id="voteStatus" style="text-align:center;color:var(--t3);font-size:.82rem;margin-top:10px"></div>
+    </div>
+
+    <!-- SPY GUESS PANEL - card style -->
+    <div id="panSpyGuess" class="panel hidden">
+      <div class="stit">🔍 کلمه مشترک را حدس بزن!</div>
+      <div class="guess-counter" id="guessCtr"></div>
+      <input class="wg-srch" id="wSrch" placeholder="جستجوی کلمه..." oninput="filterW()">
+      <div class="cards-deck" id="wCards"></div>
+      <div id="guessStatus" style="text-align:center;color:var(--t3);font-size:.82rem;margin-top:10px"></div>
+      <div class="brow" style="margin-top:12px">
+        <button class="btn bgold" id="btnSubmitGuess" onclick="submitGuess()">🎯 ارسال حدس</button>
+      </div>
+    </div>
+
+    <div class="panel"><div class="stit">💬 چت</div>
+      <div class="chat-box"><div class="chat-msgs" id="chatGame"></div>
+        <div class="ci"><input id="ciG" placeholder="پیام..." onkeydown="if(event.key==='Enter')sendChat('ciG')"><button class="csend" onclick="sendChat('ciG')">ارسال</button></div>
+      </div></div>
+  </div>
+
+  <div id="phResult" class="hidden">
+    <div class="panel res">
+      <div class="ri" id="resIco">🏆</div>
+      <div class="rt" id="resTit"></div>
+      <div class="rs" id="resSub"></div>
+      <div id="wordReveal" style="font-size:1rem;color:var(--acc);margin:8px 0;font-weight:700"></div>
+      <div class="rlist" id="resList"></div>
+      <div class="brow" style="margin-top:20px">
+        <a href="spy.html" class="btn bp" onclick="clearRoom()">🔄 بازی جدید</a>
+        <a href="index.html" class="btn bd2">🏠 لابی</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="phCancel" class="hidden">
+    <div class="panel cancel-screen">
+      <div class="cancel-icon">❌</div>
+      <div class="cancel-title">بازی کنسل شد</div>
+      <div class="cancel-sub">هاست از بازی خارج شد.</div>
+      <div style="display:flex;justify-content:center">
+        <a href="index.html" class="btn bp">🏠 بازگشت به لابی</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="engine.js"></script>
+<script>
+// ══════════════════════════════════════
+// 2000 SINGLE-WORD FARSI WORDS
+// ══════════════════════════════════════
+const WORDS=[
+// طبیعت
+'آب','آتش','آفتاب','آسمان','ابر','باد','باران','برف','برگ','بهار','تابستان','تپه','جنگل','چشمه','خاک','خورشید','دریا','دشت','رودخانه','ریشه','زمستان','زمین','سنگ','صحرا','طوفان','غار','فصل','کوه','ماه','مه','موج','نور','هوا','یخ','رعد','برق','آبشار','جزیره','دریاچه','صخره','آذرخش','قله','دره','مرداب','لجن','شن','ماسه','گِل','دود','بخار',
+// حیوانات
+'اسب','اردک','ببر','پلنگ','پروانه','تمساح','جغد','خرس','خرگوش','خروس','دلفین','روباه','زرافه','سگ','شتر','شیر','طاووس','عقاب','فیل','قناری','گاو','گرگ','گربه','گوسفند','لاک‌پشت','ماهی','مار','مرغ','موش','نهنگ','گوزن','کفتار','شغال','کبوتر','بلبل','گنجشک','زنبور','مور','پشه','ملخ','مگس','سوسک','سنجاب','موش‌کور','سمور','عقرب','خارپشت',
+// غذا
+'آش','انار','باقالی','بادمجان','برنج','پنیر','تخم‌مرغ','جگر','خرما','خیار','ذرت','زیتون','سیب','سیر','شیر','عسل','کباب','کدو','کلم','گوجه','لوبیا','ماست','مربا','نان','هویج','ریحان','پیاز','ترشی','روغن','نمک','فلفل','زعفران','دارچین','زنجبیل','سیب‌زمینی','قارچ','ذرت','لیمو','موز','انگور','هلو','گیلاس','آلو','زردآلو','انجیر','خرما',
+// مکان
+'آشپزخانه','آبشار','باغ','بازار','بانک','بندر','بیابان','بیمارستان','پارک','تئاتر','جاده','جنگل','حیاط','خیابان','دانشگاه','دریاچه','رستوران','روستا','زندان','سینما','شهر','صحرا','غار','فرودگاه','قلعه','کارخانه','کافه','کتابخانه','کوچه','کوه','مدرسه','میدان','بازارچه','مسجد','کلیسا','معبد','پل','تونل','ایستگاه','بندرگاه','گمرک','مرز','قله','دره',
+// اشیاء
+'آینه','بطری','پارچه','پتو','تابلو','چاقو','چمدان','خودکار','دفترچه','ساعت','سبد','شمع','طناب','عینک','قفل','قیچی','کتری','کلید','کمربند','لامپ','مداد','میخ','نقشه','کیف','کوله‌پشتی','چرخ','پیچ','چکش','اره','بیل','سطل','جاروبرقی','اتو','ظرف','قاشق','چنگال','بشقاب','لیوان','کتاب','قلم','کاغذ','پاکت','جعبه','قاب','تصویر',
+// لباس
+'پیراهن','شلوار','کت','کفش','جوراب','کلاه','روسری','عینک','کمربند','کراوات','دستکش','بارانی','پالتو','دامن','ژاکت','مانتو','چادر','کوله','کیف','چکمه','صندل',
+// حمل‌ونقل
+'ماشین','موتور','دوچرخه','اتوبوس','قطار','هواپیما','کشتی','تاکسی','مترو','کامیون','هلیکوپتر','قایق','اسکوتر','ون','جیپ','ترن','تراموا','ریل',
+// فناوری
+'رایانه','اینترنت','گوشی','دوربین','تلویزیون','رادیو','مودم','سرور','اپلیکیشن','ایمیل','ماهواره','ربات','میکروفون','بلندگو','هدفون','صفحه','کیبورد','موس','پرینتر','اسکنر',
+// بدن
+'سر','مو','چشم','بینی','دهان','گوش','گردن','شانه','بازو','دست','انگشت','سینه','شکم','پشت','کمر','پا','زانو','قلب','ریه','مغز','استخوان','پوست','ناخن','دندان','زبان',
+// احساسات/انتزاعی
+'شادی','غم','ترس','عشق','خشم','امید','آرامش','اضطراب','غرور','شرم','حسادت','کنجکاوی','هیجان','دلتنگی','اعتماد','آزادی','قدرت','ضعف','پیروزی','شکست','موفقیت','خطر','امنیت','صلح','جنگ','دانش','خرد','حافظه','رویا','آینده','گذشته','زمان','سرعت','انرژی','روح','ذهن','تجربه',
+// شغل/مشاغل
+'دکتر','پرستار','معلم','مهندس','پلیس','آشپز','خلبان','راننده','کشاورز','نقاش','وکیل','قاضی','نویسنده','عکاس','طراح','حسابدار','برنامه‌نویس','دندانپزشک','جراح','آتش‌نشان','نجات‌غریق','مترجم','خبرنگار','معمار','باغبان','نجار','آهنگر','برقکار','لوله‌کش',
+// ورزش
+'فوتبال','بسکتبال','والیبال','تنیس','شنا','کشتی','بوکس','ژیمناستیک','اسکی','اسکیت','تیراندازی','شطرنج','بولینگ','گلف','ووشو','کاراته','تکواندو','جودو','ماهیگیری','دویدن','پریدن','شیرجه',
+// علم
+'فیزیک','شیمی','زیست','ریاضی','نجوم','اقتصاد','روان‌شناسی','تاریخ','جغرافیا','هندسه','آمار','معادله','فرمول','آزمایش','نظریه','اختراع','کشف','میکروسکوپ','تلسکوپ','ژن','اتم','مولکول','گرانش','موج','دارو','واکسن',
+// هنر و فرهنگ
+'موسیقی','نقاشی','مجسمه','شعر','رمان','تئاتر','سیرک','کنسرت','جشنواره','عروسی','تولد','قالیبافی','خطاطی','سرامیک','عکاسی','فیلم','رقص','آواز','ساز','تار','سنتور','دف','نقاب',
+// متفرقه
+'پول','طلا','نقره','جواهر','کارت','کلید','راز','نامه','پرچم','مدال','جایزه','شهرت','اعتبار','آوازه','خبر','پیام','رمز','سری','نشانه','علامت','ردپا','آثار','شواهد','مدرک','گواه','شاهد','ابزار','وسیله','روش','راه','مسیر','هدف','برنامه','نقشه','طرح','ایده','اختراع','نوآوری'
+];
+// Filter to single-word only and deduplicate
+const W=[...new Set(WORDS.filter(w=>!w.includes(' ')&&!w.includes('‌')||w.length>2))];
+
+const AVATS=['🧑','👩','🧔','👱','🧕','👳','🦱','🧑‍🎤'];
+const MIN_P=4,MAX_P=8;
+const SPY_COUNT=2; // 2 spies per game
+const MAX_GUESSES=3; // each spy gets 3 guesses
+
+let myId=GE.myId,myNick=GE.getNick(),roomId=null,isHost=false;
+let hasVoted=false,selWord=null;
+
+(function(){
+  if(!myNick){window.location.href='index.html';return;}
+  const joinId=localStorage.getItem('gl4_joinRoom');
+  localStorage.removeItem('gl4_joinRoom');
+  if(joinId){
+    const r=GE.get(joinId);
+    if(r&&r.game==='spy'&&!r.cancelled){
+      const pc=Object.keys(r.players||{}).length;
+      const isMine=!!(r.players||{})[myId];
+      if(pc>=MAX_P&&!isMine){showToast('⛔ ظرفیت پر است!');setTimeout(()=>window.location.href='index.html',2000);return;}
+      doJoin(joinId);return;
+    }
+  }
+  const saved=localStorage.getItem('gl4_spy_room');
+  if(saved){
+    const r=GE.get(saved);
+    if(r&&!r.cancelled&&(r.players||{})[myId]){doJoin(saved);return;}
+    localStorage.removeItem('gl4_spy_room');
+  }
+  // Cross-device re-join: find active room this player is in
+  const allRooms=GE.all();
+  const myRoom=Object.entries(allRooms).find(([,r])=>r.game==='spy'&&!r.cancelled&&r.status!=='ended'&&(r.players||{})[myId]);
+  if(myRoom){doJoin(myRoom[0]);return;}
+  doCreate();
+})();
+
+function doCreate(){
+  roomId='s'+Date.now().toString(36);isHost=true;
+  const roomData={game:'spy',code:rand4(),status:'waiting',hostId:myId,hostName:myNick,createdAt:Date.now(),
+    players:{[myId]:{id:myId,name:myNick}},chat:[],gameState:{},cancelled:false};
+  GE.ready().then(()=>GE.create(roomId,roomData));
+  localStorage.setItem('gl4_spy_room',roomId);
+  listen();
+}
+function doJoin(id){
+  roomId=id;const r=GE.get(id);isHost=r.hostId===myId;
+  if(!isHost){
+    const pc=Object.keys(r.players||{}).length;
+    const isMine=!!(r.players||{})[myId];
+    if(pc>=MAX_P&&!isMine){showToast('⛔ ظرفیت پر است!');setTimeout(()=>window.location.href='index.html',2000);return;}
+  }
+  GE.patch(id,rm=>{if(!rm.players[myId])rm.players[myId]={id:myId,name:myNick};});
+  localStorage.setItem('gl4_spy_room',roomId);
+  listen();
+  if(!isHost)GE.chat(id,{sys:true,text:`${myNick} پیوست 👋`});
+}
+function listen(){
+  GE.on('spy',all=>{const r=all[roomId];if(r)render(r);});
+  GE.ready().then(()=>{
+    setTimeout(()=>{const r=GE.get(roomId);if(r)render(r);},800);
+  });
+}
+
+function render(r){
+  if(r.cancelled&&!isHost){showP('phCancel');return;}
+  document.getElementById('tbCode').textContent=r.code||roomId.slice(-4);
+  renderChat(r.chat||[],'chatLobby');renderChat(r.chat||[],'chatGame');
+  if(r.status==='waiting'){showP('phLobby');renderLobby(r);}
+  else if(r.status==='reveal'){showP('phReveal');renderReveal(r);}
+  else if(r.status==='playing'){showP('phGame');renderGame(r);}
+  else if(r.status==='ended'){showP('phResult');renderResult(r);}
+}
+function showP(id){['phLobby','phReveal','phGame','phResult','phCancel'].forEach(p=>document.getElementById(p).classList.toggle('hidden',p!==id));}
+
+function renderLobby(r){
+  const players=Object.values(r.players||{});
+  document.getElementById('pcLobby').textContent=players.length;
+  document.getElementById('pgLobby').innerHTML=players.map((p,i)=>
+    `<div class="pc ${p.id===myId?'me':''} ${p.id===r.hostId?'host':''}">
+      <div class="pav">${AVATS[i%AVATS.length]}</div>
+      <div class="pnm">${p.name}</div>
+      <div class="ptg">${p.id===r.hostId?'👑 هاست':p.id===myId?'● شما':'⚪'}</div>
+    </div>`).join('');
+  if(isHost){
+    const e=players.length>=MIN_P;
+    document.getElementById('btnStart').disabled=!e;
+    document.getElementById('btnStart').textContent=e?`🚀 شروع — ${players.length} نفر`:`🚀 حداقل ${MIN_P} نفر (${players.length}/${MIN_P})`;
+    document.getElementById('waitMsg').classList.add('hidden');
+  }else{
+    document.getElementById('btnStart').classList.add('hidden');
+    document.getElementById('waitMsg').classList.remove('hidden');
+  }
+}
+
+function renderReveal(r){
+  const gs=r.gameState||{};
+  const spyIds=gs.spyIds||[];
+  const amSpy=spyIds.includes(myId);
+  const myWord=gs.words?.[myId];
+  document.getElementById('revContent').innerHTML=amSpy
+    ?`<div class="wr-spy">🕵️ تو جاسوسی!</div>
+      <div class="wr-d">کلمه مشترک را نمی‌دانی.<br>با سؤال کردن سعی کن حدس بزنی.<br>هر جاسوس <b>${MAX_GUESSES} بار</b> فرصت حدس دارد.<br>اگر اشتباه حدس بزنی کشته می‌شوی!</div>`
+    :`<div style="font-size:.88rem;color:var(--t2);margin-bottom:8px">کلمه مشترک شما:</div>
+      <div class="wr-w">${myWord||'؟'}</div>
+      <div class="wr-d">این کلمه را پنهان نگه دار!<br>با سؤال و جواب جاسوس را پیدا کن.</div>`;
+}
+function goPlay(){showP('phGame');const r=GE.get(roomId);if(r)renderGame(r);}
+
+function renderGame(r){
+  const gs=r.gameState||{};
+  const spyIds=gs.spyIds||[];
+  const amSpy=spyIds.includes(myId);
+  const eliminated=gs.eliminated||[];
+  const myElim=eliminated.includes(myId);
+
+  document.getElementById('pbann').textContent=amSpy?'🕵️ تو جاسوسی! کلمه را حدس بزن':'🕵️ با رأی‌گیری جاسوسان را پیدا کن!';
+
+  // Word reminder
+  const wr=document.getElementById('wordReminder');
+  if(amSpy){wr.innerHTML=`<span style="color:var(--red);font-weight:700">🕵️ تو جاسوسی — کلمه مشترک را نمی‌دانی</span>`;}
+  else{wr.innerHTML=`<span style="color:var(--t2);font-size:.84rem">کلمه: </span><span style="font-weight:900;font-size:1.3rem;color:var(--acc)">${gs.words?.[myId]||''}</span>`;}
+
+  // Players
+  const vCount={};Object.values(gs.votes||{}).forEach(v=>{vCount[v]=(vCount[v]||0)+1;});
+  document.getElementById('pgGame').innerHTML=Object.values(r.players||{}).map((p,i)=>{
+    const dead=eliminated.includes(p.id);
+    return`<div class="pc ${p.id===myId?'me':''}">
+      ${(vCount[p.id]||0)?`<div class="vb">${vCount[p.id]}</div>`:''}
+      <div class="pav">${AVATS[i%AVATS.length]}</div>
+      <div class="pnm">${p.name}</div>
+      <div class="ptg">${dead?'💀 حذف شده':(gs.votes||{})[p.id]?'🗳️ رأی داد':'⚪'}</div>
+    </div>`;
+  }).join('');
+
+  // Vote panel
+  renderVotePanel(r,gs,eliminated);
+
+  // Spy guess panel
+  const guessPanel=document.getElementById('panSpyGuess');
+  if(amSpy&&!myElim){
+    guessPanel.classList.remove('hidden');
+    const guessesLeft=(gs.guessesLeft||{})[myId];
+    const gLeft=guessesLeft!==undefined?guessesLeft:MAX_GUESSES;
+    // Guess counter dots
+    let ctrHtml='<span style="font-size:.8rem;color:var(--t2);margin-left:8px">فرصت‌های باقی‌مانده:</span>';
+    for(let i=0;i<MAX_GUESSES;i++){ctrHtml+=`<div class="guess-dot ${i<gLeft?'avail':'used'}"></div>`;}
+    document.getElementById('guessCtr').innerHTML=ctrHtml;
+    document.getElementById('btnSubmitGuess').disabled=(gLeft<=0);
+    buildWordCards(W.sort((a,b)=>a.localeCompare(b,'fa')));
+  }else{guessPanel.classList.add('hidden');}
+
+  // Auto-process votes
+  const vTotal=Object.keys(gs.votes||{}).length;
+  const alivePlayers=Object.keys(r.players||{}).filter(id=>!eliminated.includes(id));
+  const pTotal=alivePlayers.length;
+  if(isHost&&vTotal>=pTotal&&pTotal>0){setTimeout(()=>processVotes(),1200);}
+}
+
+function renderVotePanel(r,gs,eliminated){
+  const alive=Object.values(r.players||{}).filter(p=>!eliminated.includes(p.id));
+  const myVote=gs.votes?.[myId];
+  const myDead=eliminated.includes(myId);
+  document.getElementById('agVote').innerHTML=alive.map((p,i)=>{
+    if(p.id===myId)return'';
+    const idx=Object.values(r.players).findIndex(x=>x.id===p.id);
+    return`<div class="ab ${myVote===p.id?'picked':''}" onclick="${myDead||hasVoted?'':('castVote(\''+p.id+'\')')}">
+      <div style="font-size:1.2rem;margin-bottom:4px">${AVATS[idx%AVATS.length]}</div>
+      <div style="font-size:.82rem;font-weight:600">${p.name}</div>
+    </div>`;
+  }).join('');
+  const vt=Object.keys(gs.votes||{}).length;
+  document.getElementById('voteStatus').textContent=`${vt} از ${alive.length} نفر رأی دادند`;
+}
+
+function castVote(tid){
+  if(hasVoted)return showToast('قبلاً رأی دادی!');
+  const r=GE.get(roomId);if(!r)return;
+  if((r.gameState?.eliminated||[]).includes(myId))return showToast('شما حذف شدید!');
+  hasVoted=true;
+  GE.patch(roomId,rm=>{if(!rm.gameState.votes)rm.gameState.votes={};rm.gameState.votes[myId]=tid;});
+  showToast('رأی ثبت شد ✅');
+}
+
+function processVotes(){
+  if(!isHost)return;
+  const r=GE.get(roomId);if(!r||r.status==='ended')return;
+  const gs=r.gameState||{};
+  const counts={};Object.values(gs.votes||{}).forEach(v=>{counts[v]=(counts[v]||0)+1;});
+  const entries=Object.entries(counts);
+  if(!entries.length)return;
+  const maxV=Math.max(...entries.map(([,c])=>c));
+  const tied=entries.filter(([,c])=>c===maxV).map(([id])=>id);
+  const accId=tied[Math.floor(Math.random()*tied.length)]; // random among tied
+  const accName=r.players[accId]?.name||'؟';
+  const spyIds=gs.spyIds||[];
+  const isSpy=spyIds.includes(accId);
+
+  GE.chat(roomId,{sys:true,text:`🗳️ ${accName} متهم شد!`});
+
+  if(isSpy){
+    const newElim=[...(gs.eliminated||[]),accId];
+    const remainSpies=spyIds.filter(id=>!newElim.includes(id));
+    GE.chat(roomId,{sys:true,text:`✅ درست! ${accName} جاسوس بود!`});
+    if(remainSpies.length===0){
+      doEnd('citizens',`🎉 شهروندان بردند!`,`همه جاسوسان شناسایی شدند`,r);
+    }else{
+      // More spies remain — reset votes and continue
+      GE.patch(roomId,rm=>{rm.gameState.eliminated=newElim;rm.gameState.votes={};});
+      GE.chat(roomId,{sys:true,text:`⚠️ هنوز ${remainSpies.length} جاسوس دیگر باقی است!`});
+      hasVoted=false;
+    }
+  }else{
+    // Wrong — a citizen was killed → spies win!
+    GE.chat(roomId,{sys:true,text:`❌ اشتباه! ${accName} شهروند بود! جاسوسان بردند!`});
+    doEnd('spy',`🕵️ جاسوسان بردند!`,`یک شهروند اشتباهاً اعدام شد`,r);
+  }
+}
+
+// ── SPY WORD GUESS (card UI) ──
+function buildWordCards(words){
+  document.getElementById('wCards').innerHTML=words.map(w=>
+    `<div class="word-card ${selWord===w?'selected':''}" onclick="selW('${w}')">${w}</div>`
+  ).join('');
+}
+function filterW(){
+  const q=document.getElementById('wSrch').value.trim();
+  const filtered=q?W.filter(w=>w.includes(q)):W.sort((a,b)=>a.localeCompare(b,'fa'));
+  buildWordCards(filtered);
+}
+function selW(w){
+  selWord=w;
+  document.getElementById('wSrch').value=w;
+  filterW();
+  document.getElementById('guessStatus').textContent=`انتخاب شده: ${w}`;
+}
+
+function submitGuess(){
+  if(!selWord)return showToast('کلمه‌ای انتخاب نکردی!');
+  const r=GE.get(roomId);if(!r)return;
+  const gs=r.gameState||{};
+  const gLeft=(gs.guessesLeft||{})[myId]!==undefined?(gs.guessesLeft||{})[myId]:MAX_GUESSES;
+  if(gLeft<=0)return showToast('فرصت‌های حدس تمام شده!');
+
+  const correct=gs.commonWord===selWord;
+  GE.chat(roomId,{sys:true,text:`🕵️ جاسوس ${myNick} حدس زد: "${selWord}"`});
+
+  // Decrease guess count
+  GE.patch(roomId,rm=>{
+    if(!rm.gameState.guessesLeft)rm.gameState.guessesLeft={};
+    rm.gameState.guessesLeft[myId]=(rm.gameState.guessesLeft[myId]!==undefined?rm.gameState.guessesLeft[myId]:MAX_GUESSES)-1;
+  });
+
+  if(correct){
+    GE.chat(roomId,{sys:true,text:`✅ جاسوس کلمه "${selWord}" را درست حدس زد! جاسوسان بردند!`});
+    doEnd('spy',`🕵️ جاسوسان بردند!`,`جاسوس کلمه مشترک را حدس زد`,r);
+  }else{
+    const remaining=(gLeft-1);
+    if(remaining<=0){
+      // Spy is eliminated
+      GE.patch(roomId,rm=>{rm.gameState.eliminated=[...(rm.gameState.eliminated||[]),myId];});
+      GE.chat(roomId,{sys:true,text:`❌ اشتباه! ${myNick} کشته شد!`});
+      showToast('❌ حدس اشتباه! کشته شدید!');
+      // Check if all spies dead
+      const rr=GE.get(roomId);
+      const gs2=rr?.gameState||{};
+      const spyIds=gs2.spyIds||[];
+      const elim=gs2.eliminated||[];
+      const aliveSpy=spyIds.filter(id=>!elim.includes(id));
+      if(aliveSpy.length===0){doEnd('citizens',`🎉 شهروندان بردند!`,`همه جاسوسان حذف شدند`,rr);}
+    }else{
+      showToast(`❌ اشتباه! ${remaining} فرصت باقی دارید`);
+    }
+    selWord=null;
+    document.getElementById('wSrch').value='';
+    buildWordCards(W.sort((a,b)=>a.localeCompare(b,'fa')));
+  }
+}
+
+function doEnd(winner,title,sub,r){
+  if(!isHost)return;
+  const rr=GE.get(roomId);if(!rr||rr.status==='ended')return;
+  GE.patch(roomId,rm=>{rm.status='ended';rm.winner=winner;rm.endTitle=title;rm.endSub=sub;});
+  GE.chat(roomId,{sys:true,text:'🏁 '+title});
+}
+
+function startSpy(){
+  const r=GE.get(roomId);if(!r)return;
+  const players=Object.values(r.players||{});
+  if(players.length<MIN_P)return showToast(`حداقل ${MIN_P} نفر!`);
+  
+  const word=W[Math.floor(Math.random()*W.length)];
+  // Pick SPY_COUNT random spies
+  const shuffled=GE.shuffle(players);
+  const spyIds=shuffled.slice(0,Math.min(SPY_COUNT,Math.floor(players.length/2))).map(p=>p.id);
+  const words={};
+  players.forEach(p=>{words[p.id]=spyIds.includes(p.id)?null:word;});
+  const guessesLeft={};
+  spyIds.forEach(id=>{guessesLeft[id]=MAX_GUESSES;});
+  
+  GE.patch(roomId,rm=>{
+    rm.status='reveal';
+    rm.gameState={commonWord:word,spyIds,words,votes:{},eliminated:[],guessesLeft};
+  });
+  GE.chat(roomId,{sys:true,text:`🕵️ بازی شروع شد! ${spyIds.length} جاسوس داریم.`});
+}
+
+function renderResult(r){
+  const gs=r.gameState||{};
+  const isSpy=r.winner==='spy';
+  document.getElementById('resIco').textContent=isSpy?'🕵️':'🎉';
+  document.getElementById('resTit').textContent=r.endTitle||'بازی تمام شد';
+  document.getElementById('resSub').textContent=r.endSub||'';
+  document.getElementById('wordReveal').textContent=`کلمه مشترک: ${gs.commonWord||'؟'}`;
+  const spyIds=gs.spyIds||[];
+  document.getElementById('resList').innerHTML=
+    `<div class="stit" style="margin-top:14px">🎭 نقش‌ها</div>`+
+    Object.values(r.players||{}).map((p,i)=>{
+      const isSp=spyIds.includes(p.id);
+      const dead=(gs.eliminated||[]).includes(p.id);
+      return`<div class="rli">
+        <span>${isSp?'🕵️':'👤'}</span>
+        <span class="rli-n" style="${dead?'opacity:.45':''}">
+          ${p.name}${p.id===myId?' (شما)':''}${dead?' 💀':''}
+        </span>
+        <span style="padding:2px 10px;border-radius:99px;font-size:.74rem;font-weight:700;background:${isSp?'rgba(239,68,68,.15)':'rgba(16,185,129,.15)'};color:${isSp?'#ef4444':'#10b981'}">${isSp?'جاسوس':'شهروند'}</span>
+      </div>`;
+    }).join('');
+}
+
+function leaveGame(){
+  if(!roomId)return;
+  if(isHost){
+    GE.patch(roomId,rm=>{rm.cancelled=true;rm.status='cancelled';});
+    GE.chat(roomId,{sys:true,text:'❌ هاست از بازی خارج شد. اتاق بسته شد!'});
+    setTimeout(()=>GE.del(roomId),2000);
+    GE.off('spy');localStorage.removeItem('gl4_spy_room');window.location.href='index.html';
+  }else{
+    GE.patch(roomId,rm=>{delete rm.players[myId];});
+    GE.chat(roomId,{sys:true,text:`${myNick} از بازی خارج شد`});
+    GE.off('spy');localStorage.removeItem('gl4_spy_room');window.location.href='index.html';
+  }
+}
+
+function sendChat(id){const el=document.getElementById(id);if(!el.value.trim()||!roomId)return;GE.chat(roomId,{name:myNick,text:el.value.trim()});el.value='';}
+function renderChat(msgs,id){const el=document.getElementById(id);if(!el)return;const ab=el.scrollHeight-el.clientHeight<=el.scrollTop+20;el.innerHTML=msgs.slice(-50).map(m=>m.sys?`<div class="cm cm-sys">💬 ${m.text}</div>`:`<div class="cm cm-u"><div class="cmw">${m.name}</div><div class="cmt">${m.text}</div></div>`).join('');if(ab)el.scrollTop=el.scrollHeight;}
+function clearRoom(){localStorage.removeItem('gl4_spy_room');localStorage.removeItem('gl4_joinRoom');}
+function rand4(){return Math.floor(1000+Math.random()*9000).toString();}
+function showToast(msg){document.querySelector('.toast')?.remove();const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2800);}
+</script>
+</body></html>

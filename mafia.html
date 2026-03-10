@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مافیا — گیم‌لند</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08050f;--s1:#0e0a1c;--s2:#160f28;--bd:#2a1f45;--acc:#9333ea;--red:#ef4444;--gold:#f59e0b;--grn:#10b981;--cyan:#06b6d4;--t1:#ede8ff;--t2:#a89dc4;--t3:#6b5f85;--f:'Vazirmatn',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--f);background:var(--bg);color:var(--t1);min-height:100vh}
+.bg{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(147,51,234,.2),transparent 60%)}
+.wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:16px 16px 48px}
+.topbar{display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--bd);border-radius:16px;padding:12px 18px;margin-bottom:16px;flex-wrap:wrap}
+.back{text-decoration:none;color:var(--t2);background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:9px;padding:6px 12px;font-size:.82rem}
+.back:hover{background:var(--bd)}
+.tb-game{font-weight:800;font-size:1.05rem;flex:1}
+.tb-code{background:var(--s2);border:1px solid var(--bd);padding:4px 10px;border-radius:7px;font-size:.76rem;color:var(--acc);font-weight:700;letter-spacing:1px}
+.btn-leave{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.3);border-radius:9px;padding:6px 12px;cursor:pointer;font-family:var(--f);font-size:.8rem;font-weight:600}
+.btn-leave:hover{background:rgba(239,68,68,.22)}
+.panel{background:var(--s1);border:1px solid var(--bd);border-radius:20px;padding:20px;margin-bottom:14px}
+.stit{font-size:.85rem;font-weight:700;color:var(--t2);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.stit::after{content:'';flex:1;height:1px;background:var(--bd)}
+.pbanner{border-radius:14px;padding:14px 20px;text-align:center;font-weight:700;font-size:1rem;margin-bottom:14px}
+.pb-day{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:var(--gold)}
+.pb-night{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:#93c5fd}
+.pb-vote{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red)}
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.pc{background:var(--s2);border:2px solid var(--bd);border-radius:14px;padding:12px 8px;text-align:center;transition:all .2s;position:relative}
+.pc.me{border-color:var(--acc)}.pc.host{border-color:var(--gold)}.pc.dead{opacity:.35;filter:grayscale(.8)}
+.pc.clickable{cursor:pointer}.pc.clickable:hover:not(.dead){border-color:var(--red);transform:translateY(-2px);background:rgba(239,68,68,.06)}
+.pc.chosen{border-color:var(--red)!important;background:rgba(239,68,68,.1)!important}
+.pc-av{width:42px;height:42px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;background:linear-gradient(135deg,var(--acc),#7c3aed)}
+.pc-name{font-size:.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-tag{font-size:.68rem;color:var(--t3);margin-top:3px}
+.vdot{position:absolute;top:-5px;right:-5px;background:var(--red);color:#fff;border-radius:99px;font-size:.68rem;font-weight:800;padding:2px 6px;min-width:18px;text-align:center}
+.role-reveal{text-align:center;padding:24px 16px}
+.re{font-size:4rem;margin-bottom:12px;line-height:1}
+.rn{font-size:1.7rem;font-weight:900;margin-bottom:8px}
+.rf{display:inline-block;padding:4px 14px;border-radius:99px;font-size:.8rem;font-weight:700;margin-bottom:12px}
+.rf-m{background:rgba(239,68,68,.15);color:var(--red)}.rf-c{background:rgba(16,185,129,.15);color:var(--grn)}
+.rd{color:var(--t2);font-size:.86rem;line-height:1.7;max-width:340px;margin:0 auto}
+.btn{padding:10px 20px;border-radius:11px;border:none;font-family:var(--f);font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s}
+.bp{background:linear-gradient(135deg,var(--acc),#7c3aed);color:#fff}
+.bp:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(147,51,234,.4)}
+.bp:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
+.bd2{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.bd2:hover{background:rgba(239,68,68,.22)}
+.brow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.ag{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:10px}
+.ab{background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:12px 8px;cursor:pointer;text-align:center;transition:all .2s;font-family:var(--f);color:var(--t1);font-size:.8rem}
+.ab:hover{border-color:var(--acc);background:rgba(147,51,234,.1)}
+.ab.done{border-color:var(--grn)!important;background:rgba(16,185,129,.1)!important;color:var(--grn)!important}
+.chat-box{background:var(--s2);border:1px solid var(--bd);border-radius:14px;overflow:hidden}
+.chat-msgs{height:170px;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
+.cm{font-size:.82rem}.cm-sys{color:var(--t3);font-style:italic}
+.cm-u .cmw{font-size:.73rem;font-weight:700;color:var(--acc);margin-bottom:1px}.cm-u .cmt{color:var(--t2)}
+.ci{display:flex;gap:8px;padding:9px;border-top:1px solid var(--bd)}
+.ci input{flex:1;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;color:var(--t1);font-family:var(--f);font-size:.83rem;outline:none}
+.ci input:focus{border-color:var(--acc)}
+.csend{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;font-family:var(--f);font-size:.8rem;font-weight:600}
+.res{text-align:center;padding:28px 16px}
+.ri{font-size:4.5rem;margin-bottom:14px}.rt{font-size:1.9rem;font-weight:900;margin-bottom:8px}.rs{color:var(--t2);font-size:.9rem;margin-bottom:16px}
+.rlist{margin-top:16px}.rli{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:.86rem}.rli:last-child{border-bottom:none}
+.rli-n{font-weight:700;flex:1}.rbadge{padding:2px 10px;border-radius:99px;font-size:.74rem;font-weight:700}
+/* CANCELLED overlay */
+.cancel-screen{text-align:center;padding:40px 20px}
+.cancel-icon{font-size:4rem;margin-bottom:16px}
+.cancel-title{font-size:1.6rem;font-weight:900;margin-bottom:8px;color:var(--red)}
+.cancel-sub{color:var(--t2);font-size:.9rem;margin-bottom:20px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:12px 22px;z-index:999;font-size:.86rem;box-shadow:0 8px 28px rgba(0,0,0,.5);animation:tin .3s;pointer-events:none;text-align:center;max-width:90vw}
+@keyframes tin{from{transform:translateX(-50%) translateY(10px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="wrap">
+  <div class="topbar">
+    <a href="index.html" class="back">← لابی</a>
+    <div class="tb-game">🎭 مافیا</div>
+    <span class="tb-code" id="tbCode">----</span>
+    <button class="btn-leave" onclick="leaveGame()">خروج</button>
+  </div>
+
+  <!-- LOBBY -->
+  <div id="phLobby">
+    <div class="panel">
+      <div class="stit">👥 بازیکنان (<span id="pcLobby">0</span>/۱۲ — حداقل ۴)</div>
+      <div class="pg" id="pgLobby"></div>
+      <div style="margin-top:18px;text-align:center">
+        <button class="btn bp" id="btnStart" onclick="startGame()" disabled>🚀 شروع بازی</button>
+        <div id="waitMsg" class="hidden" style="margin-top:8px;font-size:.83rem;color:var(--t3)">منتظر هاست برای شروع...</div>
+      </div>
+    </div>
+    <div class="panel"><div class="stit">💬 چت</div>
+      <div class="chat-box"><div class="chat-msgs" id="chatLobby"></div>
+        <div class="ci"><input id="ciLobby" placeholder="پیام..." onkeydown="if(event.key==='Enter')sendChat('ciLobby')"><button class="csend" onclick="sendChat('ciLobby')">ارسال</button></div>
+      </div></div>
+  </div>
+
+  <!-- ROLE REVEAL -->
+  <div id="phRole" class="hidden">
+    <div class="panel"><div class="role-reveal" id="roleContent"></div>
+      <div class="brow" style="margin-top:12px">
+        <button class="btn bp" onclick="goPlay()">فهمیدم! وارد بازی ▶</button>
+      </div></div>
+  </div>
+
+  <!-- GAME -->
+  <div id="phGame" class="hidden">
+    <div class="pbanner" id="phaseBanner">☀️ روز</div>
+    <div class="panel"><div class="stit">👥 بازیکنان</div><div class="pg" id="pgGame"></div></div>
+    <div id="panVote" class="panel hidden">
+      <div class="stit">🗳️ رأی‌گیری — چه کسی اعدام شود؟</div>
+      <div class="pg" id="pgVote"></div>
+      <div id="voteStatus" style="text-align:center;font-size:.82rem;color:var(--t3);margin-top:10px"></div>
+    </div>
+    <div id="panNight" class="panel hidden">
+      <div style="text-align:center;margin-bottom:12px">
+        <div style="font-size:1.8rem;margin-bottom:6px">🌙</div>
+        <div id="nightTitle" style="font-weight:700;font-size:.98rem;margin-bottom:4px">شب</div>
+        <div id="nightDesc" style="color:var(--t3);font-size:.83rem"></div>
+      </div>
+      <div class="ag" id="agNight"></div>
+    </div>
+    <div class="panel"><div class="stit">💬 چت</div>
+      <div class="chat-box"><div class="chat-msgs" id="chatGame"></div>
+        <div class="ci"><input id="ciGame" placeholder="پیام..." onkeydown="if(event.key==='Enter')sendChat('ciGame')"><button class="csend" onclick="sendChat('ciGame')">ارسال</button></div>
+      </div></div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="phResult" class="hidden">
+    <div class="panel res">
+      <div class="ri" id="resIco">🏆</div>
+      <div class="rt" id="resTit">بازی تمام شد</div>
+      <div class="rs" id="resSub"></div>
+      <div class="rlist" id="resList"></div>
+      <div class="brow" style="margin-top:22px">
+        <a href="mafia.html" class="btn bp" onclick="clearRoom()">🔄 بازی جدید</a>
+        <a href="index.html" class="btn bd2">🏠 لابی</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANCELLED -->
+  <div id="phCancel" class="hidden">
+    <div class="panel cancel-screen">
+      <div class="cancel-icon">❌</div>
+      <div class="cancel-title">بازی کنسل شد</div>
+      <div class="cancel-sub">هاست از بازی خارج شد و بازی لغو گردید.</div>
+      <div class="brow">
+        <a href="index.html" class="btn bp">🏠 بازگشت به لابی</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="engine.js"></script>
+<script>
+const AVATS=['🧑','👩','🧔','👱','🧕','👳','🦱','🧑‍🎤','🧑‍💻','🧑‍🔬','🕵','👴'];
+const MIN_P=4,MAX_P=12;
+
+const RDEFS={
+  boss_mafia:{name:'رییس مافیا',emoji:'👑',faction:'mafia',desc:'رهبر مافیا. هر شب قربانی را انتخاب می‌کند.'},
+  mafia:     {name:'مافیا',emoji:'🔫',faction:'mafia',desc:'عضو مافیا. در شب با رییس همکاری می‌کند.'},
+  lector:    {name:'دکتر لکتر',emoji:'🧠',faction:'mafia',desc:'پزشک مافیا. هر شب یک مافیا را نجات می‌دهد.'},
+  doctor:    {name:'دکتر',emoji:'💊',faction:'citizen',desc:'هر شب یک نفر را از مرگ نجات می‌دهد.'},
+  detective: {name:'کارآگاه',emoji:'🔍',faction:'citizen',desc:'هر شب هویت یک نفر را بررسی می‌کند.'},
+  sniper:    {name:'تک‌تیرانداز',emoji:'🎯',faction:'citizen',desc:'یک بار در کل بازی می‌تواند شلیک کند.'},
+  police:    {name:'پلیس',emoji:'👮',faction:'citizen',desc:'هر شب یک نفر را بازداشت می‌کند.'},
+  citizen:   {name:'شهروند',emoji:'👤',faction:'citizen',desc:'با رأی‌گیری روزانه مافیا را شناسایی کن.'},
+};
+
+function getRoles(n){
+  // Balanced role distribution for 4-12 players
+  if(n<=4)  return GE.shuffle(['boss_mafia','doctor','detective','citizen']);
+  if(n<=5)  return GE.shuffle(['boss_mafia','mafia','doctor','detective','citizen']);
+  if(n<=6)  return GE.shuffle(['boss_mafia','mafia','doctor','detective','police','citizen']);
+  if(n<=7)  return GE.shuffle(['boss_mafia','mafia','lector','doctor','detective','citizen','citizen']);
+  if(n<=8)  return GE.shuffle(['boss_mafia','mafia','lector','doctor','detective','sniper','police','citizen']);
+  if(n<=9)  return GE.shuffle(['boss_mafia','mafia','lector','doctor','detective','sniper','police','citizen','citizen']);
+  if(n<=10) return GE.shuffle(['boss_mafia','mafia','mafia','lector','doctor','detective','sniper','police','citizen','citizen']);
+  if(n<=11) return GE.shuffle(['boss_mafia','mafia','mafia','lector','doctor','detective','sniper','police','citizen','citizen','citizen']);
+  return     GE.shuffle(['boss_mafia','mafia','mafia','lector','doctor','detective','sniper','police','police','citizen','citizen','citizen']);
+}
+
+let myId=GE.myId,myNick=GE.getNick(),roomId=null,isHost=false;
+let myRole=null,hasVoted=false,hasActed=false,sniperFired=false;
+let nightTimer=null;
+
+// ══ INIT ══
+(function(){
+  if(!myNick){window.location.href='index.html';return;}
+
+  // Priority 1: explicit joinRoom from lobby (works cross-device)
+  const joinId=localStorage.getItem('gl4_joinRoom');
+  localStorage.removeItem('gl4_joinRoom');
+  if(joinId){
+    const r=GE.get(joinId);
+    if(r&&r.game==='mafia'&&!r.cancelled){
+      const pc=Object.keys(r.players||{}).length;
+      const isMine=!!(r.players||{})[myId];
+      if(pc>=MAX_P&&!isMine){showToast('⛔ ظرفیت پر است!');setTimeout(()=>window.location.href='index.html',2000);return;}
+      doJoin(joinId);return;
+    }
+  }
+
+  // Priority 2: already in a room on this device
+  const saved=localStorage.getItem('gl4_mafia_room');
+  if(saved){
+    const r=GE.get(saved);
+    if(r&&!r.cancelled&&(r.players||{})[myId]){doJoin(saved);return;}
+    localStorage.removeItem('gl4_mafia_room');
+  }
+
+  // Priority 3: look for any active mafia room this player is already in (cross-device re-join)
+  const allRooms=GE.all();
+  const myRoom=Object.entries(allRooms).find(([,r])=>r.game==='mafia'&&!r.cancelled&&r.status!=='ended'&&(r.players||{})[myId]);
+  if(myRoom){doJoin(myRoom[0]);return;}
+
+  doCreate();
+})();
+
+function doCreate(){
+  roomId='m'+Date.now().toString(36);
+  isHost=true;
+  const roomData={game:'mafia',code:rand4(),status:'waiting',hostId:myId,hostName:myNick,createdAt:Date.now(),players:{[myId]:{id:myId,name:myNick,alive:true}},chat:[],gameState:{},cancelled:false};
+  GE.ready().then(()=>{
+    GE.create(roomId,roomData);
+    GE.chat(roomId,{sys:true,text:`${myNick} اتاق ساخت 🎉`});
+  });
+  localStorage.setItem('gl4_mafia_room',roomId);
+  listen();
+}
+
+function doJoin(id){
+  roomId=id;
+  const r=GE.get(id);
+  isHost=r.hostId===myId;
+  if(!isHost){
+    const pc=Object.keys(r.players||{}).length;
+    const isMine=!!(r.players||{})[myId];
+    if(pc>=MAX_P&&!isMine){showToast('⛔ ظرفیت پر است!');setTimeout(()=>window.location.href='index.html',2000);return;}
+  }
+  GE.patch(id,rm=>{if(!rm.players[myId])rm.players[myId]={id:myId,name:myNick,alive:true};});
+  localStorage.setItem('gl4_mafia_room',id);
+  listen();
+  if(!isHost)GE.chat(id,{sys:true,text:`${myNick} پیوست 👋`});
+}
+
+function listen(){
+  GE.on('mafia',all=>{
+    const r=all[roomId];
+    if(!r)return;
+    if(r.cancelled&&!isHost){showAllPhases('phCancel');return;}
+    render(r);
+  });
+  // منتظر دیتابیس بمان بعد رندر کن
+  GE.ready().then(()=>{
+    setTimeout(()=>{const r=GE.get(roomId);if(r)render(r);},800);
+  });
+}
+
+function render(r){
+  if(r.cancelled){showAllPhases('phCancel');return;}
+  document.getElementById('tbCode').textContent=r.code||roomId.slice(-4);
+  renderChat(r.chat||[],'chatLobby');
+  renderChat(r.chat||[],'chatGame');
+  if(r.status==='waiting')  {showAllPhases('phLobby'); renderLobby(r);}
+  else if(r.status==='reveal'){showAllPhases('phRole'); renderRoleReveal(r);}
+  else if(r.status==='playing'){showAllPhases('phGame'); renderGame(r);}
+  else if(r.status==='ended') {showAllPhases('phResult');renderResult(r);}
+}
+
+function showAllPhases(id){
+  ['phLobby','phRole','phGame','phResult','phCancel'].forEach(p=>
+    document.getElementById(p).classList.toggle('hidden',p!==id));
+}
+
+function renderLobby(r){
+  const players=Object.values(r.players||{});
+  document.getElementById('pcLobby').textContent=players.length;
+  document.getElementById('pgLobby').innerHTML=players.map((p,i)=>
+    `<div class="pc ${p.id===myId?'me':''} ${p.id===r.hostId?'host':''}">
+      <div class="pc-av">${AVATS[i%AVATS.length]}</div>
+      <div class="pc-name">${p.name}</div>
+      <div class="pc-tag">${p.id===r.hostId?'👑 هاست':p.id===myId?'● شما':'⚪'}</div>
+    </div>`).join('');
+  if(isHost){
+    document.getElementById('btnStart').classList.remove('hidden');
+    document.getElementById('waitMsg').classList.add('hidden');
+    const e=players.length>=MIN_P;
+    document.getElementById('btnStart').disabled=!e;
+    document.getElementById('btnStart').textContent=e
+      ?`🚀 شروع — ${players.length} نفر آماده`
+      :`🚀 حداقل ${MIN_P} نفر لازم (${players.length}/${MIN_P})`;
+  }else{
+    document.getElementById('btnStart').classList.add('hidden');
+    document.getElementById('waitMsg').classList.remove('hidden');
+  }
+}
+
+function renderRoleReveal(r){
+  const gs=r.gameState||{};
+  myRole=gs.roles?.[myId]||'citizen';
+  const rd=RDEFS[myRole];
+  document.getElementById('roleContent').innerHTML=`
+    <div class="re">${rd.emoji}</div>
+    <div class="rn">${rd.name}</div>
+    <span class="rf ${rd.faction==='mafia'?'rf-m':'rf-c'}">${rd.faction==='mafia'?'🔴 مافیا':'🟢 شهروند'}</span>
+    <div class="rd">${rd.desc}</div>`;
+}
+
+function goPlay(){showAllPhases('phGame');const r=GE.get(roomId);if(r)renderGame(r);}
+
+function renderGame(r){
+  const gs=r.gameState||{};
+  myRole=gs.roles?.[myId]||myRole;
+  const elim=gs.eliminated||[];
+  const phase=gs.phase||'day';
+  const round=gs.round||1;
+  const banner=document.getElementById('phaseBanner');
+  banner.className='pbanner';
+  if(phase==='day'){banner.className+=' pb-day';banner.textContent=`☀️ روز ${round} — گفتگو`;}
+  else if(phase==='vote'){banner.className+=' pb-vote';banner.textContent=`🗳️ روز ${round} — رأی‌گیری`;}
+  else{banner.className+=' pb-night';banner.textContent=`🌙 شب ${round}`;}
+
+  const vCount={};Object.values(gs.votes||{}).forEach(v=>{vCount[v]=(vCount[v]||0)+1;});
+  const players=Object.values(r.players||{});
+  document.getElementById('pgGame').innerHTML=players.map((p,i)=>{
+    const dead=elim.includes(p.id);
+    // Only reveal role if: it's me, OR the player is dead (revealed at death)
+    const rd2=dead&&gs.roles?RDEFS[gs.roles[p.id]]:null;
+    const isMe=p.id===myId;
+    const myRd=isMe&&gs.roles?RDEFS[gs.roles[myId]]:null;
+    return`<div class="pc ${isMe?'me':''} ${dead?'dead':''}">
+      ${(vCount[p.id]||0)?`<div class="vdot">${vCount[p.id]}</div>`:''}
+      <div class="pc-av">${AVATS[i%AVATS.length]}</div>
+      <div class="pc-name">${p.name}${isMe?' (شما)':''}</div>
+      <div class="pc-tag">${dead?(rd2?rd2.emoji+' '+rd2.name:'💀'):isMe&&myRd?(myRd.emoji+' '+myRd.name):'⚪'}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('panVote').classList.toggle('hidden',phase!=='vote');
+  document.getElementById('panNight').classList.toggle('hidden',phase!=='night');
+  if(phase==='vote') renderVotePanel(r,gs,elim);
+  if(phase==='night') renderNightPanel(r,gs,elim);
+  checkEnd(roomId);
+}
+
+function renderVotePanel(r,gs,elim){
+  // Only alive players vote — maefi rast votes (not just non-me)
+  const alive=Object.values(r.players||{}).filter(p=>!elim.includes(p.id));
+  const myVote=gs.votes?.[myId];
+  const vCount={};Object.values(gs.votes||{}).forEach(v=>{vCount[v]=(vCount[v]||0)+1;});
+  const myDead=elim.includes(myId);
+
+  document.getElementById('pgVote').innerHTML=alive.map((p,i)=>{
+    if(p.id===myId)return'';
+    const idx=Object.values(r.players).findIndex(x=>x.id===p.id);
+    return`<div class="pc clickable ${myVote===p.id?'chosen':''}" 
+      onclick="${myDead||hasVoted?'':('castVote(\''+p.id+'\')')}">
+      <div class="pc-av">${AVATS[idx%AVATS.length]}</div>
+      <div class="pc-name">${p.name}</div>
+      <div class="pc-tag">${vCount[p.id]?'🗳️ '+vCount[p.id]:''}</div>
+    </div>`;
+  }).join('');
+
+  const total=Object.keys(gs.votes||{}).length;
+  // alive who can vote = alive excluding dead, all alive players vote
+  const canVote=alive.length;
+  document.getElementById('voteStatus').textContent=`${total} از ${canVote} نفر رأی دادند`;
+  if(isHost&&total>=canVote&&canVote>0){
+    setTimeout(()=>processVote(),1300);
+  }
+}
+
+function castVote(tid){
+  if(hasVoted)return showToast('قبلاً رأی دادی!');
+  const r=GE.get(roomId);
+  if(!r||(r.gameState?.eliminated||[]).includes(myId))return showToast('شما حذف شدید!');
+  hasVoted=true;
+  GE.patch(roomId,rm=>{if(!rm.gameState.votes)rm.gameState.votes={};rm.gameState.votes[myId]=tid;});
+  showToast('رأی ثبت شد ✅');
+}
+
+function processVote(){
+  if(!isHost)return;
+  const r=GE.get(roomId);if(!r)return;
+  const gs=r.gameState||{};
+  // Count votes — pick randomly among ties for true randomness
+  const counts={};
+  Object.values(gs.votes||{}).forEach(v=>{counts[v]=(counts[v]||0)+1;});
+  const entries=Object.entries(counts);
+  if(!entries.length){
+    GE.patch(roomId,rm=>{rm.gameState={...gs,phase:'night',votes:{},nightActions:{}};});
+    return;
+  }
+  // Find max votes — if tie pick random
+  const maxV=Math.max(...entries.map(([,c])=>c));
+  const tied=entries.filter(([,c])=>c===maxV).map(([id])=>id);
+  const eid=tied[Math.floor(Math.random()*tied.length)]; // random among tied
+  const en=r.players[eid]?.name||'؟';
+  const er=RDEFS[gs.roles?.[eid]]?.name||'؟';
+  const elim=[...(gs.eliminated||[]),eid];
+  GE.chat(roomId,{sys:true,text:`☀️ ${en} با رأی اکثریت اعدام شد! نقش: ${er}`});
+  GE.patch(roomId,rm=>{rm.gameState={...gs,phase:'night',votes:{},nightActions:{},eliminated:elim,round:(gs.round||1)};});
+  hasVoted=false;hasActed=false;
+  checkEnd(roomId);
+}
+
+function renderNightPanel(r,gs,elim){
+  const tEl=document.getElementById('nightTitle');
+  const dEl=document.getElementById('nightDesc');
+  const grid=document.getElementById('agNight');
+  const myDead=elim.includes(myId);
+  const myAct=gs.nightActions?.[myId];
+  clearTimeout(nightTimer);
+
+  if(myDead){
+    tEl.textContent='💀 شما حذف شدید';dEl.textContent='تماشا کنید...';grid.innerHTML='';
+    if(isHost)nightTimer=setTimeout(()=>processNight(),8000);
+    return;
+  }
+  if(myRole==='citizen'){
+    tEl.textContent='😴 شهروندان می‌خوابند';dEl.textContent='صبر کنید...';grid.innerHTML='';
+    if(isHost)nightTimer=setTimeout(()=>processNight(),8000);
+    return;
+  }
+
+  const alive=Object.values(r.players||{}).filter(p=>!elim.includes(p.id));
+  const others=alive.filter(p=>p.id!==myId);
+  const idxMap={};Object.values(r.players||{}).forEach((p,i)=>{idxMap[p.id]=i;});
+
+  if(myRole==='boss_mafia'||myRole==='mafia'){
+    tEl.textContent='🔫 قربانی شب را انتخاب کن';
+    dEl.textContent=myRole==='boss_mafia'?'رأی تو اولویت دارد':'با رییس هماهنگ کن';
+  }else if(myRole==='lector'){
+    tEl.textContent='🧠 کدام مافیا را نجات دهیم؟';dEl.textContent='یکی از مافیاها را محافظت کن';
+  }else if(myRole==='doctor'){
+    tEl.textContent='💊 چه کسی را نجات دهیم؟';dEl.textContent='می‌توانی خودت را هم انتخاب کنی';
+  }else if(myRole==='detective'){
+    tEl.textContent='🔍 هویت چه کسی را بررسی کنیم؟';dEl.textContent='نتیجه فقط برای تو';
+  }else if(myRole==='sniper'){
+    if(sniperFired||gs.sniperUsed){tEl.textContent='🎯 تیر مصرف شد';dEl.textContent='';grid.innerHTML='';
+      if(isHost)nightTimer=setTimeout(()=>processNight(),8000);return;}
+    tEl.textContent='🎯 تک‌تیرانداز — شلیک کن!';dEl.textContent='فقط یک بار در کل بازی!';
+  }else if(myRole==='police'){
+    tEl.textContent='👮 چه کسی را بازداشت کنیم؟';dEl.textContent='آن شخص این شب عمل نخواهد کرد';
+  }
+
+  let targets=myRole==='doctor'?alive:others;
+  if(myRole==='lector'){
+    const roles=gs.roles||{};
+    let t=others.filter(p=>['mafia','boss_mafia','lector'].includes(roles[p.id]));
+    targets=t.length?t:others;
+  }
+
+  grid.innerHTML=targets.map(p=>`
+    <div class="ab ${myAct===p.id?'done':''}" onclick="doNightAction('${p.id}','${p.name}')">
+      <div style="font-size:1.2rem;margin-bottom:4px">${AVATS[idxMap[p.id]%AVATS.length]}</div>
+      <div>${p.name}</div>
+    </div>`).join('');
+
+  // Auto-force night after 15s — punish inactive role holders
+  if(isHost){
+    nightTimer=setTimeout(()=>{
+      const rr=GE.get(roomId);
+      if(!rr||rr.gameState?.phase!=='night')return;
+      const gs2=rr.gameState||{};const roles2=gs2.roles||{};const elim2=gs2.eliminated||[];
+      const needed=['boss_mafia','doctor','detective','lector','sniper','police'];
+      const toKill=[];
+      needed.forEach(role=>{
+        const h=Object.keys(roles2).find(pid=>roles2[pid]===role&&!elim2.includes(pid));
+        if(h&&!gs2.nightActions?.[h]&&!(role==='sniper'&&(gs2.sniperUsed||sniperFired))){
+          toKill.push(h);
+        }
+      });
+      if(toKill.length){
+        GE.patch(roomId,rm=>{
+          toKill.forEach(pid=>{
+            if(!(rm.gameState.eliminated||[]).includes(pid)){
+              rm.gameState.eliminated=[...(rm.gameState.eliminated||[]),pid];
+              GE.chat(roomId,{sys:true,text:`⚡ ${rr.players[pid]?.name} (${RDEFS[roles2[pid]]?.name}) بی‌عمل ماند و کشته شد!`});
+            }
+          });
+        });
+      }
+      processNight();
+    },15000);
+  }
+}
+
+function doNightAction(tid,tname){
+  if(hasActed)return;
+  hasActed=true;
+  GE.patch(roomId,rm=>{if(!rm.gameState.nightActions)rm.gameState.nightActions={};rm.gameState.nightActions[myId]=tid;});
+  if(myRole==='detective'){
+    const r=GE.get(roomId);const gs=r?.gameState||{};
+    const tr=gs.roles?.[tid];
+    const isMaf=['mafia','boss_mafia','lector'].includes(tr);
+    showToast(`🔍 ${tname}: ${isMaf?'⚠️ مافیا!':'✅ بی‌گناه'}`);
+  }else if(myRole==='sniper'){sniperFired=true;showToast(`🎯 شلیک به ${tname}!`);}
+  else showToast('عملیات ثبت شد ✅');
+  if(isHost)checkNightDone();
+}
+
+function checkNightDone(){
+  const r=GE.get(roomId);if(!r)return;
+  const gs=r.gameState||{};const roles=gs.roles||{};const elim=gs.eliminated||{};const actions=gs.nightActions||{};
+  const needed=['boss_mafia','doctor','detective','lector','sniper','police'];
+  const allDone=needed.every(role=>{
+    const h=Object.keys(roles).find(pid=>roles[pid]===role&&!elim[pid]);
+    if(!h)return true; // role not present or dead
+    if(role==='sniper'&&(gs.sniperUsed||sniperFired))return true;
+    return !!actions[h];
+  });
+  if(allDone){clearTimeout(nightTimer);setTimeout(()=>processNight(),1000);}
+}
+
+function processNight(){
+  if(!isHost)return;
+  clearTimeout(nightTimer);
+  const r=GE.get(roomId);if(!r||r.gameState?.phase!=='night')return;
+  const gs=r.gameState||{};const roles=gs.roles||{};const actions=gs.nightActions||{};
+  let elim=[...(gs.eliminated||[])];
+  const players=r.players||{};
+
+  function holder(role){return Object.keys(roles).find(pid=>roles[pid]===role&&!elim.includes(pid));}
+  const bossId=holder('boss_mafia'),mafId=holder('mafia');
+  const docId=holder('doctor'),lecId=holder('lector');
+  const snipId=holder('sniper'),polId=holder('police');
+
+  const killTgt=actions[bossId]||actions[mafId];
+  const docSave=actions[docId];
+  const lecSave=actions[lecId];
+  const snipShot=actions[snipId];
+  const polArr=actions[polId];
+  const msgs=[];
+
+  // Sniper
+  if(snipShot&&!gs.sniperUsed){
+    if(lecSave!==snipShot&&!elim.includes(snipShot)){
+      elim.push(snipShot);
+      msgs.push(`🎯 تک‌تیرانداز شلیک کرد! ${players[snipShot]?.name} حذف شد (نقش: ${RDEFS[roles[snipShot]]?.name||'؟'})`);
+    }else if(lecSave===snipShot){msgs.push('🧠 دکتر لکتر مافیا را نجات داد!');}
+  }
+
+  // Mafia kill
+  if(killTgt&&killTgt!==polArr){
+    if(killTgt===docSave){msgs.push('🏥 دکتر یک نفر را دیشب نجات داد!');}
+    else if(!elim.includes(killTgt)){elim.push(killTgt);msgs.push(`🔫 مافیا دیشب ${players[killTgt]?.name} را کشت! (نقش: ${RDEFS[roles[killTgt]]?.name||'؟'})`);}
+  }else if(killTgt&&killTgt===polArr){msgs.push('👮 پلیس مانع عملیات مافیا شد!');}
+  else if(!killTgt){msgs.push('🌙 مافیا دیشب کسی را نکشت.');}
+
+  if(!msgs.length)msgs.push('🌅 صبح شد!');
+  msgs.forEach(m=>GE.chat(roomId,{sys:true,text:m}));
+  GE.patch(roomId,rm=>{rm.gameState={...gs,phase:'vote',round:(gs.round||1)+1,nightActions:{},votes:{},eliminated:elim,sniperUsed:gs.sniperUsed||(!!snipShot&&!gs.sniperUsed)};});
+  hasVoted=false;hasActed=false;
+  checkEnd(roomId);
+}
+
+function startGame(){
+  const r=GE.get(roomId);if(!r)return;
+  const players=Object.values(r.players||{});
+  if(players.length<MIN_P)return showToast(`حداقل ${MIN_P} نفر!`);
+  // True random role assignment
+  const shuffledPlayers=GE.shuffle(players);
+  const roleList=getRoles(players.length);
+  const roles={};
+  shuffledPlayers.forEach((p,i)=>{roles[p.id]=roleList[i]||'citizen';});
+  GE.patch(roomId,rm=>{
+    rm.status='reveal';
+    rm.gameState={roles,phase:'day',round:1,votes:{},nightActions:{},eliminated:[],sniperUsed:false};
+  });
+  GE.chat(roomId,{sys:true,text:'🎭 بازی شروع شد! نقش‌ها به‌صورت تصادفی تقسیم شد.'});
+}
+
+function checkEnd(rid){
+  const r=GE.get(rid);if(!r||r.status==='ended')return;
+  const gs=r.gameState||{};const roles=gs.roles||{};const elim=gs.eliminated||[];
+  const alive=Object.keys(r.players||{}).filter(id=>!elim.includes(id));
+  const maf=alive.filter(id=>['mafia','boss_mafia','lector'].includes(roles[id]));
+  const cit=alive.filter(id=>!['mafia','boss_mafia','lector'].includes(roles[id]));
+  if(maf.length===0)doEnd('citizen','🎉 شهروندان بردند!','همه مافیاها حذف شدند');
+  else if(maf.length>=cit.length)doEnd('mafia','😈 مافیا برد!','مافیا کنترل شهر را گرفت');
+}
+
+function doEnd(winner,title,sub){
+  if(!isHost)return;
+  const r=GE.get(roomId);if(!r||r.status==='ended')return;
+  GE.patch(roomId,rm=>{rm.status='ended';rm.winner=winner;rm.endTitle=title;rm.endSub=sub;});
+  GE.chat(roomId,{sys:true,text:'🏁 '+title});
+}
+
+function renderResult(r){
+  document.getElementById('resIco').textContent=r.winner==='mafia'?'😈':'🎉';
+  document.getElementById('resTit').textContent=r.endTitle||'بازی تمام شد';
+  document.getElementById('resSub').textContent=r.endSub||'';
+  const gs=r.gameState||{};const elim=gs.eliminated||[];
+  document.getElementById('resList').innerHTML=
+    `<div class="stit" style="margin-top:16px">🎭 نقش همه بازیکنان</div>`+
+    Object.values(r.players||{}).map((p,i)=>{
+      const rk=gs.roles?.[p.id];const rd=RDEFS[rk]||RDEFS.citizen;
+      const dead=elim.includes(p.id);
+      return`<div class="rli">
+        <span>${rd.emoji}</span>
+        <span class="rli-n" style="${dead?'opacity:.5':''}">
+          ${p.name}${p.id===myId?' (شما)':''}${dead?' 💀':''}
+        </span>
+        <span class="rbadge" style="background:${rd.faction==='mafia'?'rgba(239,68,68,.15)':'rgba(16,185,129,.15)'};color:${rd.faction==='mafia'?'#ef4444':'#10b981'}">${rd.name}</span>
+      </div>`;
+    }).join('');
+}
+
+function leaveGame(){
+  if(!roomId)return;
+  if(isHost){
+    // Host leaves → cancel and DELETE room entirely
+    GE.patch(roomId,rm=>{rm.cancelled=true;rm.status='cancelled';});
+    GE.chat(roomId,{sys:true,text:'❌ هاست از بازی خارج شد. اتاق بسته شد!'});
+    setTimeout(()=>GE.del(roomId),2000); // delete after others see the message
+    GE.off('mafia');
+    localStorage.removeItem('gl4_mafia_room');
+    window.location.href='index.html';
+  }else{
+    // Non-host leaves → just remove self
+    GE.patch(roomId,rm=>{delete rm.players[myId];});
+    GE.chat(roomId,{sys:true,text:`${myNick} از بازی خارج شد`});
+    GE.off('mafia');
+    localStorage.removeItem('gl4_mafia_room');
+    window.location.href='index.html';
+  }
+}
+
+function sendChat(inputId){
+  const el=document.getElementById(inputId);
+  if(!el.value.trim()||!roomId)return;
+  GE.chat(roomId,{name:myNick,text:el.value.trim()});
+  el.value='';
+}
+function renderChat(msgs,id){
+  const el=document.getElementById(id);if(!el)return;
+  const ab=el.scrollHeight-el.clientHeight<=el.scrollTop+20;
+  el.innerHTML=msgs.slice(-50).map(m=>m.sys
+    ?`<div class="cm cm-sys">💬 ${m.text}</div>`
+    :`<div class="cm cm-u"><div class="cmw">${m.name}</div><div class="cmt">${m.text}</div></div>`
+  ).join('');
+  if(ab)el.scrollTop=el.scrollHeight;
+}
+function clearRoom(){localStorage.removeItem('gl4_mafia_room');localStorage.removeItem('gl4_joinRoom');}
+function rand4(){return Math.floor(1000+Math.random()*9000).toString();}
+function showToast(msg){document.querySelector('.toast')?.remove();const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2800);}
+</script>
+</body></html>
