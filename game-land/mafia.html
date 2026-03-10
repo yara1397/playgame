@@ -110,6 +110,9 @@ body{font-family:var(--f);background:var(--bg);color:var(--t1);min-height:100vh}
   <!-- GAME -->
   <div id="phGame" class="hidden">
     <div class="pbanner" id="phaseBanner">☀️ روز</div>
+    <div id="guestInfo" class="hidden" style="background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.3);border-radius:12px;padding:12px 16px;text-align:center;margin-bottom:12px;font-size:.86rem;color:#a5b4fc">
+      👁️ شما مهمان هستید — بازی را تماشا می‌کنید
+    </div>
     <div class="panel"><div class="stit">👥 بازیکنان</div><div class="pg" id="pgGame"></div></div>
     <div id="panVote" class="panel hidden">
       <div class="stit">🗳️ رأی‌گیری — چه کسی اعدام شود؟</div>
@@ -189,12 +192,12 @@ function getRoles(n){
 let myId=GE.myId,myNick=GE.getNick(),roomId=null,isHost=false;
 let myRole=null,hasVoted=false,hasActed=false,sniperFired=false;
 let nightTimer=null;
+let isGuest=false;
 
-// ══ INIT ══
-(function(){
+// ══ INIT — منتظر دیتابیس بمان ══
+GE.ready().then(()=>{
   if(!myNick){window.location.href='index.html';return;}
 
-  // Priority 1: explicit joinRoom from lobby (works cross-device)
   const joinId=localStorage.getItem('gl4_joinRoom');
   localStorage.removeItem('gl4_joinRoom');
   if(joinId){
@@ -202,52 +205,57 @@ let nightTimer=null;
     if(r&&r.game==='mafia'&&!r.cancelled){
       const pc=Object.keys(r.players||{}).length;
       const isMine=!!(r.players||{})[myId];
-      if(pc>=MAX_P&&!isMine){showToast('⛔ ظرفیت پر است!');setTimeout(()=>window.location.href='index.html',2000);return;}
+      if(pc>=MAX_P&&!isMine){doWatch(joinId);return;}
       doJoin(joinId);return;
     }
   }
 
-  // Priority 2: already in a room on this device
   const saved=localStorage.getItem('gl4_mafia_room');
   if(saved){
     const r=GE.get(saved);
-    if(r&&!r.cancelled&&(r.players||{})[myId]){doJoin(saved);return;}
+    if(r&&!r.cancelled&&r.status!=='ended'){
+      if((r.players||{})[myId]){doJoin(saved);return;}
+      doWatch(saved);return;
+    }
     localStorage.removeItem('gl4_mafia_room');
   }
 
-  // Priority 3: look for any active mafia room this player is already in (cross-device re-join)
   const allRooms=GE.all();
-  const myRoom=Object.entries(allRooms).find(([,r])=>r.game==='mafia'&&!r.cancelled&&r.status!=='ended'&&(r.players||{})[myId]);
+  const myRoom=Object.entries(allRooms).find(([,r])=>
+    r.game==='mafia'&&!r.cancelled&&r.status!=='ended'&&(r.players||{})[myId]);
   if(myRoom){doJoin(myRoom[0]);return;}
 
   doCreate();
-})();
+});
 
 function doCreate(){
   roomId='m'+Date.now().toString(36);
-  isHost=true;
-  const roomData={game:'mafia',code:rand4(),status:'waiting',hostId:myId,hostName:myNick,createdAt:Date.now(),players:{[myId]:{id:myId,name:myNick,alive:true}},chat:[],gameState:{},cancelled:false};
-  GE.ready().then(()=>{
-    GE.create(roomId,roomData);
-    GE.chat(roomId,{sys:true,text:`${myNick} اتاق ساخت 🎉`});
-  });
+  isHost=true;isGuest=false;
+  const roomData={game:'mafia',code:rand4(),status:'waiting',hostId:myId,hostName:myNick,
+    createdAt:Date.now(),players:{[myId]:{id:myId,name:myNick,alive:true}},
+    chat:[],gameState:{},cancelled:false};
+  GE.create(roomId,roomData);
+  GE.chat(roomId,{sys:true,text:`${myNick} اتاق ساخت 🎉`});
   localStorage.setItem('gl4_mafia_room',roomId);
   listen();
 }
 
 function doJoin(id){
-  roomId=id;
+  roomId=id;isGuest=false;
   const r=GE.get(id);
   isHost=r.hostId===myId;
-  if(!isHost){
-    const pc=Object.keys(r.players||{}).length;
-    const isMine=!!(r.players||{})[myId];
-    if(pc>=MAX_P&&!isMine){showToast('⛔ ظرفیت پر است!');setTimeout(()=>window.location.href='index.html',2000);return;}
-  }
   GE.patch(id,rm=>{if(!rm.players[myId])rm.players[myId]={id:myId,name:myNick,alive:true};});
   localStorage.setItem('gl4_mafia_room',id);
   listen();
   if(!isHost)GE.chat(id,{sys:true,text:`${myNick} پیوست 👋`});
+}
+
+// مهمان — فقط تماشا، نه بازیکن
+function doWatch(id){
+  roomId=id;isHost=false;isGuest=true;
+  localStorage.setItem('gl4_mafia_room',id);
+  listen();
+  showToast('👁️ شما به عنوان مهمان وارد شدید');
 }
 
 function listen(){
@@ -257,10 +265,7 @@ function listen(){
     if(r.cancelled&&!isHost){showAllPhases('phCancel');return;}
     render(r);
   });
-  // منتظر دیتابیس بمان بعد رندر کن
-  GE.ready().then(()=>{
-    setTimeout(()=>{const r=GE.get(roomId);if(r)render(r);},800);
-  });
+  const r=GE.get(roomId);if(r)render(r);
 }
 
 function render(r){
@@ -288,7 +293,13 @@ function renderLobby(r){
       <div class="pc-name">${p.name}</div>
       <div class="pc-tag">${p.id===r.hostId?'👑 هاست':p.id===myId?'● شما':'⚪'}</div>
     </div>`).join('');
-  if(isHost){
+
+  if(isGuest){
+    // مهمان — فقط تماشا
+    document.getElementById('btnStart').classList.add('hidden');
+    document.getElementById('waitMsg').classList.remove('hidden');
+    document.getElementById('waitMsg').textContent='👁️ شما مهمان هستید — فقط تماشا';
+  } else if(isHost){
     document.getElementById('btnStart').classList.remove('hidden');
     document.getElementById('waitMsg').classList.add('hidden');
     const e=players.length>=MIN_P;
@@ -299,6 +310,7 @@ function renderLobby(r){
   }else{
     document.getElementById('btnStart').classList.add('hidden');
     document.getElementById('waitMsg').classList.remove('hidden');
+    document.getElementById('waitMsg').textContent='منتظر هاست برای شروع...';
   }
 }
 
@@ -331,7 +343,6 @@ function renderGame(r){
   const players=Object.values(r.players||{});
   document.getElementById('pgGame').innerHTML=players.map((p,i)=>{
     const dead=elim.includes(p.id);
-    // Only reveal role if: it's me, OR the player is dead (revealed at death)
     const rd2=dead&&gs.roles?RDEFS[gs.roles[p.id]]:null;
     const isMe=p.id===myId;
     const myRd=isMe&&gs.roles?RDEFS[gs.roles[myId]]:null;
@@ -342,6 +353,16 @@ function renderGame(r){
       <div class="pc-tag">${dead?(rd2?rd2.emoji+' '+rd2.name:'💀'):isMe&&myRd?(myRd.emoji+' '+myRd.name):'⚪'}</div>
     </div>`;
   }).join('');
+
+  // مهمان — پانل‌های عملیاتی را نبیند
+  if(isGuest){
+    document.getElementById('panVote').classList.add('hidden');
+    document.getElementById('panNight').classList.add('hidden');
+    // یه پیام برای مهمان نشان بده
+    const guestInfo=document.getElementById('guestInfo');
+    if(guestInfo)guestInfo.classList.remove('hidden');
+    return;
+  }
 
   document.getElementById('panVote').classList.toggle('hidden',phase!=='vote');
   document.getElementById('panNight').classList.toggle('hidden',phase!=='night');

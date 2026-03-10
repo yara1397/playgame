@@ -193,8 +193,9 @@ function rCard(code){
 }
 
 let myId=GE.myId,myNick=GE.getNick(),roomId=null,isHost=false;
+let isGuest=false;
 
-(function(){
+GE.ready().then(()=>{
   if(!myNick){window.location.href='index.html';return;}
   const joinId=localStorage.getItem('gl4_joinRoom');
   localStorage.removeItem('gl4_joinRoom');
@@ -203,48 +204,49 @@ let myId=GE.myId,myNick=GE.getNick(),roomId=null,isHost=false;
     if(r&&r.game==='poker'&&!r.cancelled){
       const pc=Object.keys(r.players||{}).length;
       const isMine=!!(r.players||{})[myId];
-      if(pc>=MAX_P&&!isMine){showToast('⛔ ظرفیت پر است!');setTimeout(()=>window.location.href='index.html',2000);return;}
+      if(pc>=MAX_P&&!isMine){doWatch(joinId);return;}
       doJoin(joinId);return;
     }
   }
   const saved=localStorage.getItem('gl4_poker_room');
   if(saved){
     const r=GE.get(saved);
-    if(r&&!r.cancelled&&(r.players||{})[myId]){doJoin(saved);return;}
+    if(r&&!r.cancelled&&r.status!=='ended'){
+      if((r.players||{})[myId]){doJoin(saved);return;}
+      doWatch(saved);return;
+    }
     localStorage.removeItem('gl4_poker_room');
   }
-  // Cross-device re-join: find active room this player is in
   const allRooms=GE.all();
   const myRoom=Object.entries(allRooms).find(([,r])=>r.game==='poker'&&!r.cancelled&&r.status!=='ended'&&(r.players||{})[myId]);
   if(myRoom){doJoin(myRoom[0]);return;}
   doCreate();
-})();
+});
 
 function doCreate(){
-  roomId='k'+Date.now().toString(36);isHost=true;
+  roomId='k'+Date.now().toString(36);isHost=true;isGuest=false;
   const roomData={game:'poker',code:rand4(),status:'waiting',hostId:myId,hostName:myNick,createdAt:Date.now(),
     players:{[myId]:{id:myId,name:myNick,chips:START_CHIPS}},chat:[],gameState:{},cancelled:false};
-  GE.ready().then(()=>GE.create(roomId,roomData));
+  GE.create(roomId,roomData);
   localStorage.setItem('gl4_poker_room',roomId);
   listen();
 }
 function doJoin(id){
-  roomId=id;const r=GE.get(id);isHost=r.hostId===myId;
-  if(!isHost){
-    const pc=Object.keys(r.players||{}).length;
-    const isMine=!!(r.players||{})[myId];
-    if(pc>=MAX_P&&!isMine){showToast('⛔ ظرفیت پر است!');setTimeout(()=>window.location.href='index.html',2000);return;}
-  }
+  roomId=id;isGuest=false;const r=GE.get(id);isHost=r.hostId===myId;
   GE.patch(id,rm=>{if(!rm.players[myId])rm.players[myId]={id:myId,name:myNick,chips:START_CHIPS};});
-  localStorage.setItem('gl4_poker_room',roomId);
+  localStorage.setItem('gl4_poker_room',id);
   listen();
   if(!isHost)GE.chat(id,{sys:true,text:`${myNick} پیوست 👋`});
 }
+function doWatch(id){
+  roomId=id;isHost=false;isGuest=true;
+  localStorage.setItem('gl4_poker_room',id);
+  listen();
+  showToast('👁️ شما به عنوان مهمان وارد شدید');
+}
 function listen(){
   GE.on('poker',all=>{const r=all[roomId];if(r)render(r);});
-  GE.ready().then(()=>{
-    setTimeout(()=>{const r=GE.get(roomId);if(r)render(r);},800);
-  });
+  const r=GE.get(roomId);if(r)render(r);
 }
 
 function render(r){
